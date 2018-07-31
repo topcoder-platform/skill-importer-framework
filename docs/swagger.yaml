@@ -1,0 +1,1225 @@
+openapi: 3.0.0
+info:
+  title: Topcoder - Skill Importer Framework API
+  version: '1.0.0'
+servers:
+  - url: https://domain.com/api/v1
+security:
+  - bearerAuth: [] 
+paths:
+  /users:
+    post:
+      tags:
+      - user
+      summary: Register a new user with role Member
+      description: Register a new user with role Member
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username: 
+                  type: string
+                  description: the username, must be unique
+                password:
+                  type: string
+                  description: the password, must be encrypted before storing to database
+                name:
+                  type: string
+                  description: the real name
+              required:
+                - username
+                - password
+                - name
+        required: true
+      responses:
+        201:
+          description: successful operation
+        400:
+          description: invalid request | username already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        500:
+          description: server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+      security: []
+
+    get:
+      tags:
+      - user
+      summary: Search users. anonymous allowed
+      parameters:
+      - name: limit
+        in: query
+        description: the search limit. Must be greater than 0 if present
+        schema:
+          type: integer
+          format: long
+      - name: offset
+        in: query
+        description: the search offset. Must be not less than 0 if present
+        schema:
+          type: integer
+          format: long
+      - name: sortBy
+        in: query
+        description: the sort field. Allow `username` and `name`
+        schema:
+          type: string
+      - name: sortDirection
+        in: query
+        description: the sort direction. Allow `asc` and `desc`. Default to `asc` if not present
+        schema:
+          type: string
+      - name: role
+        in: query
+        description: the role filter, using exact match (e.g. = role)
+        schema:
+          $ref: '#/components/schemas/Role'
+      - name: username
+        in: query
+        description: the username filter, using containing match (e.g. LIKE %username%)
+        schema:
+          type: string
+      - name: name
+        in: query
+        description: the name filter, using containing match (e.g. LIKE %name%)
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: skills
+        in: query
+        description: the skills filter
+        schema:
+          type: array
+          items:
+            type: string
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    format: long
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/User"
+        400:
+          description: invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        500:
+          description: server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+      security: []
+
+  /login:
+    post:
+      tags:
+      - user
+      summary: Login with username and password
+      description: An access token will be generated and returned so that the client side can set it to `Authorization` header to make calls to the APIs which require authentication
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - username
+              - password
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+        required: true
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        400:
+          description: missing username or password
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        401:
+          description: wrong username or password
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        500:
+          description: server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+      security: []
+
+  /logout:
+    post:
+      tags:
+      - user
+      summary: Logout
+      description: Remove the access token if any
+      responses:
+        204:
+          description: successful operation
+        401:
+          description: action is not allowed for anonymous | invalid access token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        500:
+          description: server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+                
+  /changePassword:
+    post:
+      tags:
+      - user
+      summary: Change password
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - currentPassword
+              - newPassword
+              properties:
+                currentPassword:
+                  type: string
+                newPassword:
+                  type: string
+
+        required: true
+      responses:
+        204:
+          description: successful operation
+        400:
+          description: invalid request | wrong current password
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        401:
+          description: action is not allowed for anonymous | invalid access token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        500:
+          description: server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  /accounts:
+    get:
+      tags:
+      - account
+      summary: Get all accounts for a specific user
+      description: Anonymous allowed
+      parameters:
+      - name: userUid
+        in: query
+        description: the uid of the user
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Account'
+        400:
+          description: invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        404:
+          description: member does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        500:
+          description: server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+      security: []
+      
+    post:
+      tags:
+      - account
+      summary: Create a new account for the logged in user. Member only. For websites supporting OAUth2, use `GET /connect/{website}` instead
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Account'
+        required: true
+      responses:
+        201:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        400:
+          description: invalid request | website already exists for the logged in member | username does not exist in the website
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        401:
+          description: action is not allowed for anonymous | invalid access token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        403:
+          description: action is not allowed for non-Member
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        500:
+          description: server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  /accounts/{id}:
+    delete:
+      tags:
+      - account
+      summary: Delete an account
+      description: Member can delete his/her own account. Admin can delete any user's account
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        204:
+          description: successful operation
+        400:
+          description: invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        401:
+          description: action is not allowed for anonymous | invalid access token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        403:
+          description: member does not allowed to delete another member's account
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        404:
+          description: account does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        500:
+          description: server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  /accounts/{id}/importingStatus:
+    get:
+      tags:
+      - account
+      summary: Get an account's importing status
+      description: Anonymous allowed
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  importingStatus:
+                    type: boolean
+                    description: true if the importing is running for the account, otherwise false
+        400:
+          description: invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        401:
+          description: action is not allowed for anonymous | invalid access token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        404:
+          description: account does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        500:
+          description: server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+      security: []
+
+  /connect/{website}:
+    get:
+      tags:
+      - account
+      summary: Connect with an external website account via OAuth2. Member only
+      parameters:
+      - name: website
+        in: path
+        required: true
+        schema:
+          type: string
+          description: the OAuth2 website, such as `github`
+      responses:
+        201:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        400:
+          description: invalid request | website already exists for the logged in member | username does not exist in the website | username already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        401:
+          description: action is not allowed for anonymous | invalid access token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        403:
+          description: action is not allowed for non-Member
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        500:
+          description: server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  /connect/{website}/callback:
+    get:
+      tags:
+      - account
+      summary: Callback for OAuth2 website (see `GET /connect/{website}`)
+      parameters:
+      - name: website
+        in: path
+        required: true
+        schema:
+          type: string
+          description: the OAuth2 website, such as `github`
+      responses:
+        201:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        400:
+          description: invalid request | website already exists for the logged in member | username does not exist in the website | username already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        401:
+          description: action is not allowed for anonymous | invalid access token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        403:
+          description: action is not allowed for non-Member
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        500:
+          description: server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  /users/{uid}/skills:
+    get:
+      tags:
+      - user skill
+      summary: Get all user skills for a specific user
+      description: Anonymous allowed
+      parameters:
+      - name: uid
+        in: path
+        description: the user uid
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Skill'
+        400:
+          description: invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        404:
+          description: user does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        500:
+          description: server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+      security: []
+
+  /accounts/{accountId}/skills:
+    get:
+      tags:
+      - account skill
+      summary: Get all skills for a specific account
+      description: Anonymous allowed
+      parameters:
+      - name: accountId
+        in: path
+        description: the account id
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Skill'
+                description: successful operation
+        400:
+          description: invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        404:
+          description: account does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        500:
+          description: server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+      security: []
+    post:
+      tags:
+      - account skill
+      summary: Create a new skill for the account
+      description: Admin only
+      parameters:
+      - name: accountId
+        in: path
+        description: the account id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Skill'
+        required: true
+      responses:
+        201:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Skill'
+        400:
+          description: invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        401:
+          description: action is not allowed for anonymous | invalid access token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        403:
+          description: action is only allowed for Admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        404:
+          description: account does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        500:
+          description: server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+  /accounts/{accountId}/skills/{skillId}:
+    put:
+      tags:
+      - account skill
+      summary: Update skill for a specific account
+      description: Admin only
+      parameters:
+      - name: accountId
+        in: path
+        description: the account id
+        required: true
+        schema:
+          type: string
+      - name: skillId
+        in: path
+        description: the skill id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Skill'
+        required: true
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Skill'
+        400:
+          description: invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        401:
+          description: action is not allowed for anonymous | invalid access token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        403:
+          description: action is only allowed for Admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        404:
+          description: account does not exist | skill does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        500:
+          description: server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+    delete:
+      tags:
+      - account skill
+      summary: Delete an account skill
+      description: Admin only
+      parameters:
+      - name: accountId
+        in: path
+        description: the account id
+        required: true
+        schema:
+          type: string
+      - name: skillId
+        in: path
+        description: the skill id
+        required: true
+        schema:
+          type: string
+      responses:
+        204:
+          description: successful operation
+        400:
+          description: invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        401:
+          description: action is not allowed for anonymous | invalid access token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        403:
+          description: action is only allowed for Admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        404:
+          description: account does not exist | skill does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        500:
+          description: server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+  /events:
+    get:
+      tags:
+      - event
+      summary: Get all events for a specific user
+      description: Member can get his/her own events. Admin can get events of any user
+      parameters:
+      - name: userUid
+        in: query
+        description: the user uid
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: accountId
+        in: query
+        description: the account id, for filter events of specific account
+        style: form
+        explode: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Event'
+        400:
+          description: invalid request | user does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        401:
+          description: action is not allowed for anonymous | invalid access token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        403:
+          description: action is only allowed for Admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        500:
+          description: server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+    post:
+      tags:
+      - event
+      summary: Create a new event
+      description: Admin only
+      parameters:
+      - name: userUid
+        in: query
+        description: the user uid
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: accountId
+        in: query
+        description: the account id, the event that associates with
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Event'
+        required: true
+      responses:
+        201:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        401:
+          description: action is not allowed for anonymous | invalid access token | user does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        403:
+          description: action is only allowed for Admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        500:
+          description: server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+  /events/{id}:
+    delete:
+      tags:
+      - event
+      summary: Delete an event
+      description: Admin only
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: userUid
+        in: query
+        description: the user uid
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+      responses:
+        204:
+          description: successful operation
+        400:
+          description: invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        401:
+          description: action is not allowed for anonymous | invalid access token | user does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        403:
+          description: action is only allowed for Admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        404:
+          description: event does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        500:
+          description: server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  /normalizedSkillNames:
+    get:
+      tags:
+      - normalized skill name
+      summary: Get normalized skill names
+      description: Anonymous allowed
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NormalizedSkillName'
+        500:
+          description: server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+      security: []
+    post:
+      tags:
+      - normalized skill name
+      summary: Create a new normalized skill name
+      description: Admin only
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NormalizedSkillName'
+        required: true
+      responses:
+        201:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NormalizedSkillName'
+        401:
+          description: action is not allowed for anonymous | invalid access token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        403:
+          description: action is only allowed for Admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        500:
+          description: server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+  /normalizedSkillNames/{skillName}:
+    put:
+      tags:
+      - normalized skill name
+      summary: Update skill name
+      description: Admin only
+      parameters:
+      - name: skillName
+        in: path
+        description: the unique normalized skill name
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NormalizedSkillName'
+        required: true
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NormalizedSkillName'
+        400:
+          description: invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        401:
+          description: action is not allowed for anonymous | invalid access token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        403:
+          description: action is only allowed for Admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        404:
+          description: account does not exist | skill does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        500:
+          description: server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+    delete:
+      tags:
+      - normalized skill name
+      summary: Delete a normalized skill name
+      description: Admin only
+      parameters:
+      - name: skillName
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        204:
+          description: successful operation
+        400:
+          description: invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        401:
+          description: action is not allowed for anonymous | invalid access token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        403:
+          description: action is only allowed for Admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage' 
+        404:
+          description: skill does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        500:
+          description: server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      
+  schemas:
+    ErrorMessage:
+      title: ErrorMessage
+      required:
+      - message
+      type: object
+      properties:
+        message:
+          type: string
+    LoginResponse:
+      title: LoginResponse
+      required:
+      - accessToken
+      - user
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/User'
+      properties:
+        accessToken:
+          type: string
+    User:
+      title: User
+      required:
+      - uid
+      - username
+      - name
+      - role
+      type: object
+      properties:
+        uid:
+          type: string
+          description: the unique id, auto-generated by the system when the member registered
+        username:
+          type: string
+          description: the username
+        name:
+          type: string
+          description: the real name
+        role:
+          $ref: '#/components/schemas/Role'
+    Role:
+      title: Role
+      enum:
+      - Member
+      - Admin
+      type: string
+      description: the user role
+    Account:
+      title: Account
+      required:
+      - id
+      - username
+      - website
+      type: object
+      properties:
+        id:
+          type: string
+          description: the unique id, generated by the system and should not be contained in request body
+        username:
+          type: string
+          description: the username in the external website
+        website:
+          $ref: '#/components/schemas/Website'
+      description: the account of the member in an external website
+    Website:
+      title: Website
+      enum:
+      - Behance
+      - FightCode
+      - Coursera
+      - LinkedIn
+      - HackerNews
+      - GitHub
+      - StackOverflow
+      type: string
+      description: the external website
+    NormalizedSkillName:
+      title: NormalizedSkillName
+      description: Normalized skill names
+      type: object
+      properties:
+        name:
+          type: string
+          description: The normalized skill name, should be unique
+        regex:
+          type: string
+          description: A regular expression for matching the diverse names, for example, '/node\\.js|nodejs|node/' matches NodeJS, the match should be case insensitive
+    Skill:
+      title: Skill
+      required:
+      - id
+      - name
+      - pointType
+      - points
+      type: object
+      properties:
+        id:
+          type: string
+          description: the unique id, generated by the system and should not be contained in request body
+        name:
+          $ref: '#/components/schemas/NormalizedSkillName'
+          description: the skill name, e.g. C++, NodeJS, the name must be normalized and predefined in an enum.
+        pointType:
+          type: string
+          description: the point type, e.g. Likes, Votes
+        points:
+          type: number
+          description: the points, e.g. 100
+      description: the skill
+    Event:
+      title: Event
+      required:
+      - id
+      - date
+      - text
+      - affectedAccountSkillName
+      - affectedAccountSkillPoints
+      type: object
+      properties:
+        id:
+          type: string
+          description: the unique id, generated by the system and should not be contained in request body
+        date:
+          type: string
+          description: the event date, in the format of yyyy/mm/dd hh/MM/ss
+          format: date
+        text:
+          type: string
+          description: the text describes what happened in this event
+        affectedAccountSkillName:
+          $ref: '#/components/schemas/NormalizedSkillName'
+          description: the name of the account skill affected by this event, the name is normalized name.
+        affectedAccountSkillPoints:
+          type: number
+          description: the points that this event affected to the account skill
+      description: the event that happened to an account

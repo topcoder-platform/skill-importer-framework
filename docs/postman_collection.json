@@ -1,0 +1,1018 @@
+{
+	"info": {
+		"_postman_id": "b2e306d0-54de-4132-912f-7f83e09a4547",
+		"name": "skill-importer-api",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "User",
+			"description": null,
+			"item": [
+				{
+					"name": "{{URL}}/users",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"username\": \"username10\",\n\t\"password\": \"password\",\n\t\"name\": \"First Last\"\n}"
+						},
+						"url": {
+							"raw": "{{URL}}/users",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "{{URL}}/login - Admin (username1)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "9f63d2c7-73c3-488e-b3f5-b6d534b7dc93",
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    pm.environment.set(\"BEARER_ADMIN\", \"Bearer \" + pm.response.json().accessToken);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"username\": \"username1\",\n\t\"password\": \"password\"\n}"
+						},
+						"url": {
+							"raw": "{{URL}}/login",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "{{URL}}/login - Member 1 (username2)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "482d4e13-85e6-4a46-a5bf-fcbd00d1b20c",
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    pm.environment.set(\"BEARER_MEMBER1\", \"Bearer \" + pm.response.json().accessToken);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"username\": \"username2\",\n\t\"password\": \"password\"\n}"
+						},
+						"url": {
+							"raw": "{{URL}}/login",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "{{URL}}/login - Member 2 (username3)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "8c9dcd03-c483-45e0-887d-59a6b2847fdc",
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    pm.environment.set(\"BEARER_MEMBER2\", \"Bearer \" + pm.response.json().accessToken);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"username\": \"username3\",\n\t\"password\": \"password\"\n}"
+						},
+						"url": {
+							"raw": "{{URL}}/login",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "{{URL}}/login - Member 3 (username4)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "6a1ebcc2-39f8-4cb2-aa49-4f7e35326b8b",
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    pm.environment.set(\"BEARER_MEMBER3\", \"Bearer \" + pm.response.json().accessToken);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"username\": \"username4\",\n\t\"password\": \"password\"\n}"
+						},
+						"url": {
+							"raw": "{{URL}}/login",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "{{URL}}/login - Member 8 (username9)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "f8838e0a-3d27-453f-910e-25535d286eba",
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    pm.environment.set(\"BEARER_MEMBER8\", \"Bearer \" + pm.response.json().accessToken);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"username\": \"username9\",\n\t\"password\": \"password\"\n}"
+						},
+						"url": {
+							"raw": "{{URL}}/login",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "{{URL}}/logout - Member 3",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "79804863-c5e2-4b82-81f3-5cba4485be88",
+								"type": "text/javascript",
+								"exec": [
+									"pm.environment.unset(\"BEARER_MEMBER3\");"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{BEARER_MEMBER3}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{URL}}/logout",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"logout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "{{URL}}/changePassword - Member 2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "dbc6d307-8852-4c1d-b3f5-21e85830e1df",
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 204\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{BEARER_MEMBER2}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"currentPassword\": \"password\",\n\t\"newPassword\": \"newPassword\"\n}"
+						},
+						"url": {
+							"raw": "{{URL}}/changePassword",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"changePassword"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "{{URL}}/users",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"username\": \"username10\",\n\t\"password\": \"password\",\n\t\"name\": \"First Last\"\n}"
+						},
+						"url": {
+							"raw": "{{URL}}/users",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "{{URL}}/users (filters)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"username\": \"username10\",\n\t\"password\": \"password\",\n\t\"name\": \"First Last\"\n}"
+						},
+						"url": {
+							"raw": "{{URL}}/users?username=a&role=Member&name=n&skills[]=NodeJS&skills[]=HTML&offset=0&limit=2&sortBy=name&sortDirection=desc",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"users"
+							],
+							"query": [
+								{
+									"key": "username",
+									"value": "a"
+								},
+								{
+									"key": "role",
+									"value": "Member"
+								},
+								{
+									"key": "name",
+									"value": "n"
+								},
+								{
+									"key": "skills[]",
+									"value": "NodeJS"
+								},
+								{
+									"key": "skills[]",
+									"value": "HTML"
+								},
+								{
+									"key": "offset",
+									"value": "0"
+								},
+								{
+									"key": "limit",
+									"value": "2"
+								},
+								{
+									"key": "sortBy",
+									"value": "name"
+								},
+								{
+									"key": "sortDirection",
+									"value": "desc"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Account",
+			"description": null,
+			"item": [
+				{
+					"name": "{{URL}}/accounts",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{URL}}/accounts?userUid=94b8677f-a21a-4749-8edb-971e45849394",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"accounts"
+							],
+							"query": [
+								{
+									"key": "userUid",
+									"value": "94b8677f-a21a-4749-8edb-971e45849394"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "{{URL}}/accounts/:id - Admin",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{BEARER_ADMIN}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{URL}}/accounts/94b8677f-a21a-4749-8edb-971e45849405",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"accounts",
+								"94b8677f-a21a-4749-8edb-971e45849405"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "{{URL}}/accounts/:id - Member 2",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{BEARER_MEMBER2}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{URL}}/accounts/94b8677f-a21a-4749-8edb-971e45849402",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"accounts",
+								"94b8677f-a21a-4749-8edb-971e45849402"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "{{URL}}/accounts:/:id/importingStatus",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{URL}}/accounts/94b8677f-a21a-4749-8edb-971e45849406/importingStatus",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"accounts",
+								"94b8677f-a21a-4749-8edb-971e45849406",
+								"importingStatus"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "NormalizedSkillName",
+			"description": null,
+			"item": [
+				{
+					"name": "{{URL}}/normalizedSkillNames",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{URL}}/normalizedSkillNames",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"normalizedSkillNames"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "{{URL}}/normalizedSkillNames",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{BEARER_ADMIN}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"name\": \"alanguage\",\n\t\"regex\": \"^(alanguage)$\"\n}"
+						},
+						"url": {
+							"raw": "{{URL}}/normalizedSkillNames",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"normalizedSkillNames"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "{{URL}}/normalizedSkillNames/:name",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{BEARER_ADMIN}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"regex\": \"^(alanguage|blanguage)$\"\n}"
+						},
+						"url": {
+							"raw": "{{URL}}/normalizedSkillNames/alanguage",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"normalizedSkillNames",
+								"alanguage"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "{{URL}}/normalizedSkillNames/:name",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{BEARER_ADMIN}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{URL}}/normalizedSkillNames/alanguage",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"normalizedSkillNames",
+								"alanguage"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Skill",
+			"description": null,
+			"item": [
+				{
+					"name": "{{URL}}/users/:uid/skills",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{URL}}/users/94b8677f-a21a-4749-8edb-971e45849399/skills",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"users",
+								"94b8677f-a21a-4749-8edb-971e45849399",
+								"skills"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "{{URL}}/accounts/:accountId/skills",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{URL}}/accounts/94b8677f-a21a-4749-8edb-971e45849406/skills",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"accounts",
+								"94b8677f-a21a-4749-8edb-971e45849406",
+								"skills"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "{{URL}}/accounts/:accountId/skills - Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "dd008f41-7f8e-4f01-bff4-07f68276c710",
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"    pm.environment.set(\"NEW_SKILL_ID\", pm.response.json().id);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{BEARER_ADMIN}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{   \r\n\t\"name\": \"C#\",\r\n\t\"pointType\": \"PullRequest\",\r\n\t\"points\": 3\r\n}"
+						},
+						"url": {
+							"raw": "{{URL}}/accounts/94b8677f-a21a-4749-8edb-971e45849403/skills",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"accounts",
+								"94b8677f-a21a-4749-8edb-971e45849403",
+								"skills"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "{{URL}}/accounts/:accountId/skills/:skillId - Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "ba05f436-e8a3-4af6-a4e8-ac40f0462983",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{BEARER_ADMIN}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{   \r\n\t\"name\": \"C#\",\r\n\t\"pointType\": \"PullRequestReview\",\r\n\t\"points\": 4\r\n}"
+						},
+						"url": {
+							"raw": "{{URL}}/accounts/94b8677f-a21a-4749-8edb-971e45849403/skills/{{NEW_SKILL_ID}}",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"accounts",
+								"94b8677f-a21a-4749-8edb-971e45849403",
+								"skills",
+								"{{NEW_SKILL_ID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "{{URL}}/accounts/:accountId/skills/:skillId - Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "ba05f436-e8a3-4af6-a4e8-ac40f0462983",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{BEARER_ADMIN}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{URL}}/accounts/94b8677f-a21a-4749-8edb-971e45849403/skills/{{NEW_SKILL_ID}}",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"accounts",
+								"94b8677f-a21a-4749-8edb-971e45849403",
+								"skills",
+								"{{NEW_SKILL_ID}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Event",
+			"description": null,
+			"item": [
+				{
+					"name": "{{URL}}/events - Member 8",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{BEARER_MEMBER8}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{URL}}/events?userUid=94b8677f-a21a-4749-8edb-971e45849399",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"events"
+							],
+							"query": [
+								{
+									"key": "userUid",
+									"value": "94b8677f-a21a-4749-8edb-971e45849399"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "{{URL}}/events - Admin",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{BEARER_ADMIN}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{URL}}/events?userUid=94b8677f-a21a-4749-8edb-971e45849398",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"events"
+							],
+							"query": [
+								{
+									"key": "userUid",
+									"value": "94b8677f-a21a-4749-8edb-971e45849398"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "{{URL}}/events - Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4dfba693-ded8-45e6-a49d-4287f407a35c",
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"    pm.environment.set(\"NEW_EVENT_ID\", pm.response.json().id);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{BEARER_ADMIN}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"date\": \"2018-07-20\",\n\t\"text\": \"test event\",\n\t\"skillId\": \"94b8677f-0000-0000-8edb-971e45849001\",\n\t\"affectedPoints\": 10\n}"
+						},
+						"url": {
+							"raw": "{{URL}}/events",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"events"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "{{URL}}/events/:id - Admin",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{BEARER_ADMIN}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{URL}}/events/{{NEW_EVENT_ID}}",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"events",
+								"{{NEW_EVENT_ID}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Run Importer Job (TESTING only, will be removed in PRODUCTION)",
+			"description": null,
+			"item": [
+				{
+					"name": "{{URL}}/runImporterJob",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{BEARER_ADMIN}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{URL}}/runImporterJob",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"runImporterJob"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
