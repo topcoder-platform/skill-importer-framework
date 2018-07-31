@@ -5,8 +5,8 @@ const Joi = require('joi')
 const _ = require('lodash')
 const createError = require('http-errors')
 const helper = require('../common/helper')
-const {Websites, Roles} = require('../constants')
-const {Account, User} = require('../models')
+const { Websites, Roles, ImportingStatuses } = require('../constants')
+const { Account, User } = require('../models')
 
 /**
  * Ensure that the specified account is not duplicated.
@@ -80,7 +80,7 @@ search.schema = {
  * @param {Object} currentUser the current logged in user
  */
 async function remove (id, currentUser) {
-  const account = await helper.ensureExist(Account, {id})
+  const account = await helper.ensureExist(Account, { id })
 
   if (currentUser.role !== Roles.ADMIN && account.userUid !== currentUser.uid) {
     throw createError.Forbidden('You are not allowed to delete account of another user')
@@ -105,9 +105,19 @@ remove.schema = {
  */
 async function getImportingStatus (id) {
   const account = await helper.ensureExist(Account, { id })
-  console.log(helper.isImporting(account))
+
+  let importingStatus = account.importingStatus
+  let timestamp = account.importingCompletesAt || null
+
+  // In case the app crashes during the importing
+  if (importingStatus === ImportingStatuses.RUNNING && !helper.isImporting(account)) {
+    importingStatus = ImportingStatuses.FAILED
+    timestamp = account.importingStartsAt
+  }
+
   return {
-    importingStatus: helper.isImporting(account)
+    importingStatus,
+    timestamp
   }
 }
 

@@ -23,7 +23,13 @@ function auth (...allowedRoles) {
     }
 
     // Get user by access token
-    const user = helper.verifyToken(accessToken)
+    let user
+    try {
+      user = helper.verifyToken(accessToken)
+    } catch (err) {
+      return next(err)
+    }
+
     if (!user) {
       return next(createError.Unauthorized('Anonymous is not allowed to access'))
     }

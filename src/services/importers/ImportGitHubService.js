@@ -70,17 +70,19 @@ async function fetchPullRequestReviews (username, query) {
 
   const response = await axios(url)
   const $ = cherio.load(response.data)
-  return $('button')
+  return $('li')
     .get()
-    .map(button => {
-      const $button = $(button)
-      const spans = $button.find('span')
-      const repo = $(spans[0]).text().trim() // e.g. abc/def
-      const text = $(spans[1]).text().trim() // e.g. 1 pull request
+    .map(li => {
+      const $li = $(li)
+      const date = moment($li.attr('id').slice(-10), dateFormat).toDate()
+      const $a = $($li.find('a'))
+      const text = $a.attr('href')
+      const repo = text.split('/pull/')[0].substring(1)
       return {
         repo,
-        text: `Reviewed ${text} in ${repo}`,
-        affectedPoints: parseInt(text.split(' ')[0], 10),
+        date,
+        text: `Reviewed pull request ${text}`,
+        affectedPoints: 1,
         affectedPointType: 'PullRequestReview'
       }
     })
@@ -99,17 +101,19 @@ async function fetchPullRequests (username, query) {
 
   const response = await axios(url)
   const $ = cherio.load(response.data)
-  return $('div.profile-rollup-summarized')
+  return $('li')
     .get()
-    .map(div => {
-      const $div = $(div)
-      const spans = $div.find('button span')
-      const repo = $(spans[0]).text().trim()
-      const liCount = $div.find('li').length
+    .map(li => {
+      const $li = $(li)
+      const date = moment($li.attr('id').slice(-10), dateFormat).toDate()
+      const $a = $($li.find('a'))
+      const text = $a.attr('href')
+      const repo = text.split('/pull/')[0].substring(1)
       return {
         repo,
-        text: `Created ${liCount} pull request${liCount === 1 ? '' : 's'} in ${repo}`,
-        affectedPoints: liCount,
+        date,
+        text: `Created pull request ${text}`,
+        affectedPoints: 1,
         affectedPointType: 'PullRequest'
       }
     })
@@ -185,16 +189,10 @@ async function execute (account, normalizedSkillNames) {
 
     // Get PR reviews
     const pullRequestReviews = await fetchPullRequestReviews(account.username, query)
-    _.each(pullRequestReviews, (item) => {
-      item.date = startOfMonth.toDate()
-    })
     logger.debug(`Found ${pullRequestReviews.length} Pull Request Reviews`)
 
     // Get PRs
     const pullRequests = await fetchPullRequests(account.username, query)
-    _.each(pullRequests, (item) => {
-      item.date = startOfMonth.toDate()
-    })
     logger.debug(`Found ${pullRequests.length} Pull Requests`)
 
     // Merge into the list

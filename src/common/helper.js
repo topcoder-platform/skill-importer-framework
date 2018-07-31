@@ -9,7 +9,7 @@ const config = require('config')
 const createError = require('http-errors')
 const bcrypt = require('bcrypt-nodejs')
 const jwt = require('jsonwebtoken')
-
+const { ImportingStatuses } = require('../constants')
 const logger = require('./logger')
 
 /**
@@ -196,9 +196,10 @@ function verifyToken (token) {
 function isImporting (account) {
   const now = new Date()
 
-  // The importingStartsAt is set, and not before 30 minutes ago
-  if (account.importingStartsAt &&
+  if (account.importingStatus === ImportingStatuses.RUNNING &&
+    account.importingStartsAt &&
     (now.getTime() - account.importingStartsAt.getTime() < 1800000)) {
+    // The importingStartsAt is set, and not before 30 minutes ago
     return true
   }
 
