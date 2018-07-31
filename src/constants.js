@@ -16,7 +16,15 @@ const Websites = {
   STACK_OVERFLOW: 'StackOverflow'
 }
 
+const ImportingStatuses = {
+  NOT_STARTED: 'NOT_STARTED',
+  RUNNING: 'RUNNING',
+  COMPLETED: 'COMPLETED',
+  FAILED: 'FAILED'
+}
+
 module.exports = {
   Roles,
-  Websites
+  Websites,
+  ImportingStatuses
 }

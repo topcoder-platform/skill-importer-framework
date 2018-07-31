@@ -392,8 +392,15 @@ paths:
                 type: object
                 properties:
                   importingStatus:
-                    type: boolean
-                    description: true if the importing is running for the account, otherwise false
+                    type: string
+                    enum:
+                      - NOT_STARTED
+                      - RUNNING
+                      - COMPLETED
+                      - FAILED
+                  timestamp:
+                    type: string
+                    format: date
         400:
           description: invalid request
           content:
