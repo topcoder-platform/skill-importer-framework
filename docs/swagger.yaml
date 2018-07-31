@@ -1191,6 +1191,7 @@ components:
       - HackerNews
       - GitHub
       - StackOverflow
+      - Gitlab
       type: string
       description: the external website
     NormalizedSkillName:
