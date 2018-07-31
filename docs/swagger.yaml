@@ -1147,6 +1147,7 @@ components:
       - id
       - username
       - website
+      - userUid
       type: object
       properties:
         id:
@@ -1157,7 +1158,29 @@ components:
           description: the username in the external website
         website:
           $ref: '#/components/schemas/Website'
+          description: the external website
+        userUid:
+          type: string
+          description: the associated user id
+        importingStatus:
+          $ref: '#/components/schemas/ImportingStatus'
+          description: the importing status
+        importingStartsAt:
+          type: string
+          description: The date that the importing starts at
+          format: date
+        importingCompletesAt:
+          type: string
+          description: The date that the importing completes at
+          format: date
       description: the account of the member in an external website
+    ImportingStatus:
+      title: ImportingStatus
+      enum:
+      - NOT_STARTED
+      - RUNNING
+      - COMPLETED
+      - FAILED
     Website:
       title: Website
       enum:
@@ -1188,6 +1211,7 @@ components:
       - name
       - pointType
       - points
+      - userUid
       type: object
       properties:
         id:
@@ -1202,6 +1226,9 @@ components:
         points:
           type: number
           description: the points, e.g. 100
+        userUid:
+          type: string
+          description: the associated user id
       description: the skill
     Event:
       title: Event
@@ -1209,8 +1236,12 @@ components:
       - id
       - date
       - text
-      - affectedAccountSkillName
-      - affectedAccountSkillPoints
+      - skillId
+      - affectedPoints
+      - affectedSkillName
+      - affectedPointType
+      - accountId
+      - userUid
       type: object
       properties:
         id:
@@ -1223,10 +1254,26 @@ components:
         text:
           type: string
           description: the text describes what happened in this event
-        affectedAccountSkillName:
+        skillId:
+          type: string
+          description: the affected skill id
+        affectedPoints:
+          type: number
+          description: the affected skill points
+        deletedAt:
+          type: string
+          description: the deleted date of this event
+          format: date
+        affectedSkillName:
           $ref: '#/components/schemas/NormalizedSkillName'
           description: the name of the account skill affected by this event, the name is normalized name.
-        affectedAccountSkillPoints:
+        affectedPointType:
           type: number
           description: the points that this event affected to the account skill
+        accountId:
+          type: string
+          description: the associated account id
+        userUid:
+          type: string
+          description: the associated user id
       description: the event that happened to an account
