@@ -6,3 +6,6 @@
 
 # node modules
 node_modules/
+
+# IDE files
+.vscode/
