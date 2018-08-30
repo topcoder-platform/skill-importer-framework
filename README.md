@@ -25,6 +25,8 @@ The following variables can be configured:
 - `IMPORTER_CRON_TIME` the cron time to run the importer (using cron-like syntax), default to everyday midnight
 - `GITHUB_AUTH_CONFIG` the GitHub OAuth config
 - `GITHUB_ADMIN_TOKEN` the GitHub access token to access GitHub API (https://github.com/settings/tokens)
+- `GITLAB_AUTH_CONFIG` the GitHub OAuth config ( Set the `GITLAB_CLIENT_ID` and `GITLAB_CLIENT_SECRET` ENV variables )
+- `GITLAB_ADMIN_TOKEN` the GitLab Private Access Token to access private repos via GitHub API (https://gitlab.com/profile/personal_access_tokens).  Optional.
 
 ## Create Apps for OAuth Websites
 
@@ -36,7 +38,15 @@ The following variables can be configured:
 - Click "Developer settings"
 - Click "New OAuth App" button
 - Input into all fields. NOTE: set `Homepage URL` to "http://localhost:3000", and `Authorization callback URL` to "http://localhost:3000/api/v1/connect/github/callback"
-- After submitting, you can go to the app details to get the OAuth client ID and secret. 
+- After submitting, you can go to the app details to get the OAuth client ID and secret.
+
+### How to create GitLab app
+- Login to GitLab
+- Go to "Settings" / https://gitlab.com/profile
+- Click "Applications"
+- Fill out the fields.  NOTE: Set `Redirect URI` to "http://localhost:3000/api/v1/connect/gitlab/callback"
+- Scope can be set to 'read_user'
+- After submitting, you can go to 'Your applications' and click the newly added app to get the OAuth client ID and secret.
 
 ## Code Style
 The code follows StandardJS.
@@ -67,7 +77,7 @@ The code follows StandardJS.
 - Make sure you removed the `node_modules` directory before going to the next steps
 - Create EB environment `eb create` (NOTE: use `eb create -s` if your account is free tier)
 - Go to EB console, update the environment to use NodeJS version 8.x (default is 6.x)
-- Configure new environment variables to correct values: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `GITHUB_CALLBACK_URL`. You can use the AWS Console or `eb setenv key=value`
+- Configure new environment variables to correct values: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `GITHUB_CALLBACK_URL`, `GITLAB_CLIENT_ID`, `GITLAB_CLIENT_SECRET`, `GITLAB_CALLBACK_URL`. You can use the AWS Console or `eb setenv key=value`
 - `eb open` to open that app in web browser
 
 API Demo: http://skill-importer-api-dev3.us-east-1.elasticbeanstalk.com/api/v1
@@ -77,20 +87,20 @@ Connect GitHub Demo: http://skill-importer-api-dev3.us-east-1.elasticbeanstalk.c
 
 - Start the app
 - Generate test data `npm run seed`
-- You can generate additiona admin users by udpating `test_files/seed-admin.js` and run `npm run seed-admin`
+- You can generate additional admin users by updating `test_files/seed-admin.js` and run `npm run seed-admin`
 - Import `docs/postman_collection.json` and `docs/postman_environment.json` to Postman
 - Change `URL` environment variable in Postman according to your deployment. If you deploy locally, it should be `http://localhost:3000/api/v1` by default
 - Send `/login` requests first so that the access tokens are cached for subsequent calls
 
-### For adding GitHub account, you need to verify using a web browser:
+### For adding GitHub/GitLab account, you need to verify using a web browser:
 - Go to `http://localhost:3000/html` (this url is only available for `NODE_ENV !== 'production'`)
 - Enter username, password or you can use the pre-populated
 - Click `Login`
 - Check the login response to make sure the user is logged in successfully
-- Click `Connect GitHub`
-- You will be redirected to GitHub, follow the screens to authenticate with GitHub
-- GitHub will redirect you back to `http://localhost:3000/api/v1/connect/github/callback`
-- Check the DB to verify that github account is created (you can use DynamoDB console, or any client tool)
+- Click `Connect GitHub` or `Connect GitLab`
+- You will be redirected to GitHub/GitLab, follow the screens to authenticate with GitHub/GitLab
+- GitHub/GitLab will redirect you back to `http://localhost:3000/api/v1/connect/github/callback`
+- Check the DB to verify that GitHub/GitLab account is created (you can use DynamoDB console, or any client tool)
 
 ### To verify the Importer Job
 - Use Postman call (`Run Importer Job`) to make call to the API to run the job immediately

@@ -47,6 +47,7 @@ router.post('/changePassword', auth(allRoles), wrap(controllers.UserController.c
 router.get('/users', wrap(controllers.UserController.search))
 
 // Account endpoints
+// GitHub OAuth using Passport Module
 router.get(
   `/connect/${Websites.GITHUB.toLowerCase()}`,
   passport.authenticate(Websites.GITHUB.toLowerCase())
@@ -61,6 +62,25 @@ router.get(
 
     // Start the importing immediately for the new GitHub account
     await ImporterJob.run(req.accountId)
+  }
+)
+
+// GitLab OAuth using Passport Module
+router.get(
+  `/connect/${Websites.GITLAB.toLowerCase()}`,
+  passport.authenticate(Websites.GITLAB.toLowerCase())
+)
+router.get(
+  `/connect/${Websites.GITLAB.toLowerCase()}/callback`,
+  passport.authenticate(Websites.GITLAB.toLowerCase(), passportOptions),
+  async (req, res) => {
+    // Instead of sending a message to the client,
+    // we may redirect the browser to a specified landing page, such as the Accounts listing page
+    res.status(201).send({ message: 'Account is connected successfully' })
+
+    // Start the importing immediately for the new GitLab account
+    // No `await` because we (probably) don't want this to delay the promise as it happens in the background
+    ImporterJob.run(req.accountId)
   }
 )
 

@@ -328,7 +328,7 @@ The data is fetched by API either from the [API endpoints](https://developer.git
 
 ### 6.2 How to authenticate, by oAuth, Auth0 or any other ways?
 
-GitHub API allows the program to get the authenticated user access token to perform various operations and extend the request limit. Authentication can be done using OAuth 2.0 and octokit/rest.js. 
+GitHub API allows the program to get the authenticated user access token to perform various operations and extend the request limit. Authentication can be done using OAuth 2.0 and octokit/rest.js.
 
 ### 6.3 How to ensure the skill being fetched belongs to the right member?
 
@@ -490,17 +490,80 @@ StackOverflow is part of the greater StackExchange network, and all api calls ar
 ## 8. Gitlab
 
 ### 8.1 How to fetch the data, by API or by Scraper?
+GitLab provides an API, however there are limitations:
+
+The `GET /events` endpoint will return all events for the authenticated ( via OAuth access_token ) user, but this only returns events from within the last year.  This will return events for private repositories that the user has contributed to.
+
+Alternatively, if the access_token is not used, the following endpoint can be substituted: `GET users/:id/events` - where id is the user id obtained during OAuth.  This will _only_ return private repositories when they are accessible by the Private Access Token set using the GITLAB_ADMIN_TOKEN env variable.
+
+This can still be used to import skills from private TopCoder repositories provided that the GITLAB_ADMIN_TOKEN has been invited to the repositories.
+
+These events are comprised of commits, pull requests, and other types.  The commits and events can processed much the same as with GitHub.
+
+This endpoint also supports filtering via query to reduce unnecessary data being retrieved:
+
+Opened Merge Requests: `GET https://gitlab.com/api/v4/events?action=created&target_type=merge_request`
+Approved Merge Requests: `GET https://gitlab.com/api/v4/events?action=merged&target_type=merge_request`
+  - These events will count as a single `PullRequest` or `PullRequestReview` which will be consistent with the GitHub importer.
+Pushed Code: `GET https://gitlab.com/api/v4/events?action=pushed`
+  - These API responses contain a `push_data` field which has a `commit_count` which can be used to count the commits in the push events.
+
+Example Response for `action=pushed`:
+```json
+[
+  {
+    "title": null,
+    "project_id": 15,
+    "action_name": "pushed",
+    "target_id": null,
+    "target_type": null,
+    "author_id": 1,
+    "author": {
+      "name": "Dmitriy Zaporozhets",
+      "username": "root",
+      "id": 1,
+      "state": "active",
+      "avatar_url": "http://localhost:3000/uploads/user/avatar/1/fox_avatar.png",
+      "web_url": "http://localhost:3000/root"
+    },
+    "author_username": "john",
+    "push_data": {
+      "commit_count": 1,
+      "action": "pushed",
+      "ref_type": "branch",
+      "commit_from": "50d4420237a9de7be1304607147aec22e4a14af7",
+      "commit_to": "c5feabde2d8cd023215af4d2ceeb7a64839fc428",
+      "ref": "master",
+      "commit_title": "Add simple search to projects in public area"
+    },
+    "target_title": null
+  }
+]
+```
+
+All of these calls are made with an `Authorization Bearer` header containing the `access_token` obtained through the OAuth process for the user during account linking, or a `Private-Token` header with the static GITLAB_ADMIN_TOKEN.
+
+There is no API endpoint that provides a list of the languages for a given repo.  There is however an html-based page for each repo: `https://gitlab.com/:project_name/:repo_name/graphs/master/charts` which renders a pie chart of the languages used and has a table with all of the language names.  This page can be scraped to determine the skills used in the repo/project.
+
+The best approach may be a hybrid between the API request for the user's events, and scraping the chart page for the affected repo's skills.
 
 ### 8.2 How to authenticate, by oAuth, Auth0 or any other ways?
+GitLab fully supports the OAuth process.
 
 ### 8.3 How to ensure the skill being fetched belongs to the right member?
+OAuth can be used to store the user's GitLab handle and the private access_token, which will ensure that all imported skills belong the user.
 
 ### 8.4 Are there any rate limit of requests of API usage or scraping?
+There are conflicting answers to this.  Previously GitLab had no rate limiting, but some users have reported a limit of 10 requests per second per ip address.  GitLab does not have a stated policy for rate limiting.
 
 ### 8.5 What are the skill data?
+The skill data are the commits/MRs/MR reviews that a user has made to a repo, and the skills are the languages scraped from the repo charts page.
 
 ### 8.6 What are the events that can affect the skill data?
+New commits/MRs/MR Reviews to a repo, or a language being added to the repo charts.
 
 ### 8.7 Retry strategy
+If the data fetching failed, the program will print out the error and retry for another 10 times. If all retries fail, the data fetching will stop and the program will keep the most recent imported data.
 
 ### 8.8 Remarks
+None.

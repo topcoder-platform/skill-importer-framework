@@ -8,6 +8,7 @@
       xhr.onload = function () {
         document.getElementById('loginResult').innerText = xhr.responseText
         document.getElementById('connectGitHubButton').hidden = false
+        document.getElementById('connectGitLabButton').hidden = false
       };
 
       xhr.send(JSON.stringify({
@@ -19,18 +20,23 @@
     function connectGitHub() {
       window.location = '../api/v1/connect/github'
     }
+
+    function connectGitLab() {
+      window.location = '../api/v1/connect/gitlab'
+    }
   </script>
 </head>
 
 <body>
   Username: <input id="username" type="text" value="username5"/><br/>
   Password: <input id="password" type="password" value="password"/><br/>
-  <input type="button" value="Login" onClick="login()" /><br/>
+  <input type="button" value="Login" onclick="login()" /><br/>
 
   <div id="loginResult"></div>
 
   <br/>
   <br/>
 
-  <input id="connectGitHubButton" type="button" value="Connect GitHub" onClick="connectGitHub()" hidden/>
+  <input id="connectGitHubButton" type="button" value="Connect GitHub" onclick="connectGitHub()" hidden/>
+  <input id="connectGitLabButton" type="button" value="Connect GitLab" onclick="connectGitLab()" hidden/>
 </body>

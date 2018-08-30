@@ -5,6 +5,7 @@ const config = require('config')
 const createError = require('http-errors')
 const LocalStrategy = require('passport-local').Strategy
 const GithubStrategy = require('passport-github2').Strategy
+const GitlabStrategy = require('passport-gitlab2').Strategy
 
 const UserService = require('../services/UserService')
 const AccountService = require('../services/AccountService')
@@ -74,6 +75,11 @@ module.exports = (passport) => {
   passport.use(new GithubStrategy(config.GITHUB_AUTH_CONFIG,
     (req, accessToken, refreshToken, profile, done) => {
       connectAccount(req, profile, done, Websites.GITHUB)
+    }))
+
+  passport.use(new GitlabStrategy(config.GITLAB_AUTH_CONFIG,
+    (req, accessToken, refreshToken, profile, done) => {
+      connectAccount(req, profile, done, Websites.GITLAB)
     }))
 
   // Serialize the user for the session

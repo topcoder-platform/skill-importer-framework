@@ -26,5 +26,16 @@ module.exports = {
   },
 
   // Create a new token at https://github.com/settings/tokens
-  GITHUB_ADMIN_TOKEN: process.env.GITHUB_ADMIN_TOKEN || 'token'
+  GITHUB_ADMIN_TOKEN: process.env.GITHUB_ADMIN_TOKEN || 'token',
+
+  // Create a new OAuth app at https://gitlab.com/profile/applications
+  GITLAB_AUTH_CONFIG: {
+    clientID: process.env.GITLAB_CLIENT_ID || 'clientId',
+    clientSecret: process.env.GITLAB_CLIENT_SECRET || 'clientSecret',
+    callbackURL: process.env.GITLAB_CALLBACK_URL || 'http://localhost:3000/api/v1/connect/gitlab/callback',
+    passReqToCallback: true
+  },
+
+  // Optional.  Create a new token at https://gitlab.com/profile/personal_access_tokens
+  GITLAB_ADMIN_TOKEN: process.env.GITLAB_ADMIN_TOKEN || ''
 }

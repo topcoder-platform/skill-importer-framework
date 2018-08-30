@@ -8,11 +8,12 @@ const Roles = {
 
 const Websites = {
   BEHANCE: 'Behance',
-  FLIGHT_CODE: 'FightCode',
+  FIGHT_CODE: 'FightCode',
   COURSERA: 'Coursera',
   LINKED_IN: 'LinkedIn',
   HACKER_NEWS: 'HackerNews',
   GITHUB: 'GitHub',
+  GITLAB: 'GitLab',
   STACK_OVERFLOW: 'StackOverflow'
 }
 
