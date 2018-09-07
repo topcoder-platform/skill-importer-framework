@@ -9,6 +9,8 @@
         document.getElementById('loginResult').innerText = xhr.responseText
         document.getElementById('connectGitHubButton').hidden = false
         document.getElementById('connectGitLabButton').hidden = false
+        document.getElementById('privateGitHubButton').hidden = false
+        document.getElementById('privateGitLabButton').hidden = false
       };
 
       xhr.send(JSON.stringify({
@@ -24,6 +26,20 @@
     function connectGitLab() {
       window.location = '../api/v1/connect/gitlab'
     }
+
+    var privateImportWarning = 'Your private repositories will only be imported when requested, and will not be imported automatically by this service.  Your credentials will be used once, and will not be stored on our servers.'
+
+    function privateGitHub() {
+      if(window.confirm('Import Private GitHub Repositories Now? ' + privateImportWarning)) {
+        window.location = '../api/v1/connect/github/private'
+      }
+    }
+
+    function privateGitLab() {
+      if(window.confirm('Import Private GitLab Repositories Now? ' + privateImportWarning)) {
+        window.location = '../api/v1/connect/gitlab/private'
+      }
+    }
   </script>
 </head>
 
@@ -38,5 +54,8 @@
   <br/>
 
   <input id="connectGitHubButton" type="button" value="Connect GitHub" onclick="connectGitHub()" hidden/>
+  <input id="privateGitHubButton" type="button" value="Import Private GitHub" onclick="privateGitHub()" hidden/>
+  <br />
   <input id="connectGitLabButton" type="button" value="Connect GitLab" onclick="connectGitLab()" hidden/>
+  <input id="privateGitLabButton" type="button" value="Import Private GitLab" onclick="privateGitLab()" hidden/>
 </body>

@@ -8,6 +8,7 @@ const cherio = require('cherio')
 const Axios = require('axios')
 const axiosRetry = require('axios-retry')
 const moment = require('moment')
+const pluralize = require('pluralize')
 const helper = require('../../common/helper')
 const logger = require('../../common/logger')
 
@@ -18,7 +19,7 @@ const axios = Axios.create({
   }
 })
 axiosRetry(axios, {
-  retries: 10,
+  retries: 3,
   retryDelay: (retryCount) => {
     logger.debug(`Retry #${retryCount} to fetch data from GitHub`)
     return retryCount * 10000
@@ -123,33 +124,38 @@ async function fetchPullRequests (username, query) {
  * Get main language of the repos.
  * @param {Array} repoNames the repo names
  * @param {Array} normalizedSkillNames the normalized skill names
+ * @param {String} Authorization Optional Auth credentials for importing private repos
  * @returns {Object} the repo language map
  * @private
  */
-async function getLanguages (repoNames, normalizedSkillNames) {
+async function getLanguages (repoNames, normalizedSkillNames, Authorization) {
   const map = {}
   for (let repoName of repoNames) {
-    const response = await axios(`https://api.github.com/repos/${repoName}/languages`)
-    const languages = response.data
+    try {
+      const response = await axios(`https://api.github.com/repos/${repoName}/languages`, { headers: { Authorization } })
+      const languages = response.data
 
-    logger.debug(`Repo ${repoName} languages: ${inspect(languages)}`)
+      logger.debug(`Repo ${repoName} languages: ${inspect(languages)}`)
 
-    if (!_.isEmpty(languages)) {
-      const language = _.keys(languages)[0]
+      if (!_.isEmpty(languages)) {
+        const language = _.keys(languages)[0]
 
-      // Normalize it
-      for (let normalizedSkillName of normalizedSkillNames) {
-        const regex = RegExp(normalizedSkillName.regex, 'i')
-        if (regex.test(language)) {
-          map[repoName] = normalizedSkillName.name
-          logger.debug(`Language ${language} is mapped to skill name ${normalizedSkillName.name}`)
-          break
+        // Normalize it
+        for (let normalizedSkillName of normalizedSkillNames) {
+          const regex = RegExp(normalizedSkillName.regex, 'i')
+          if (regex.test(language)) {
+            map[repoName] = normalizedSkillName.name
+            logger.debug(`Language ${language} is mapped to skill name ${normalizedSkillName.name}`)
+            break
+          }
+        }
+
+        if (!map[repoName]) {
+          logger.info(`Language ${language} is not mapped with any skill name`)
         }
       }
-
-      if (!map[repoName]) {
-        logger.info(`Language ${language} is not mapped with any skill name`)
-      }
+    } catch (error) {
+      logger.error(`Error getting details/languages for repo: ${repoName}`)
     }
   }
 
@@ -160,13 +166,92 @@ async function getLanguages (repoNames, normalizedSkillNames) {
 }
 
 /**
+ * Get the private repo events for the user from the official GitHub API
+ * @param {String} username The user's GitHub handle
+ * @param {String} Authorization Auth credentials for importing private repos
+ * @returns {Array} the list of private repo events
+ * @private
+ */
+async function getPrivateRepoEvents (username, Authorization) {
+  let events = []
+  let page = 0
+
+  // GitHub will return a maximum of 10 pages at 30 events per page.
+  while (page < 10) {
+    page += 1
+    const {data: pageEvents} = await axios(`https://api.github.com/users/${username}/events`, {
+      headers: {Authorization},
+      params: {page}
+    })
+    if (_.isEmpty(pageEvents)) {
+      break
+    }
+    events = _.concat(events, pageEvents)
+  }
+
+  const privateEvents = _.filter(events, event => !event.public)
+
+  const processedEvents = _.map(privateEvents, event => {
+    if (event.type === 'PullRequestEvent' && _.get(event, 'payload.action') === 'opened') {
+      return ({
+        repo: _.get(event, 'repo.name'),
+        date: moment(event.created_at).toDate(),
+        isPrivateRepo: true,
+        text: `Created pull request ${_.get(event, 'payload.pull_request._links.html.href')}`,
+        affectedPoints: 1,
+        affectedPointType: 'PullRequest'
+      })
+    }
+
+    if (event.type === 'PullRequestEvent' && _.get(event, 'payload.action') === 'closed') {
+      return ({
+        repo: _.get(event, 'repo.name'),
+        date: moment(event.created_at).toDate(),
+        isPrivateRepo: true,
+        text: `Reviewed pull request ${_.get(event, 'payload.pull_request._links.html.href')}`,
+        affectedPoints: 1,
+        affectedPointType: 'PullRequestReview'
+      })
+    }
+
+    if (event.type === 'PushEvent') {
+      const commitCount = _.get(event, 'payload.size')
+      const repo = _.get(event, 'repo.name')
+      return {
+        repo,
+        date: moment(event.created_at).toDate(),
+        isPrivateRepo: true,
+        text: `Created ${pluralize('commit', commitCount, true)} in ${repo}`,
+        affectedPoints: commitCount,
+        affectedPointType: 'Commit'
+      }
+    }
+  })
+
+  // Remove null values from unsupported event types
+  return _.filter(processedEvents)
+}
+
+/**
  * Fetch events from the website.
  * @param {Object} account the account
  * @param {Array} normalizedSkillNames the normalized skill names
+ * @param {String} accessToken Optional OAuth token to allow import from private repositories.
  * @returns {Array} the array of events
  */
-async function execute (account, normalizedSkillNames) {
+async function execute (account, normalizedSkillNames, accessToken) {
+  const Authorization = accessToken ? `Bearer ${accessToken}` : null
   let events = []
+
+  if (Authorization) {
+    try {
+      const privateEvents = await getPrivateRepoEvents(account.username, Authorization)
+      logger.debug(`Found ${privateEvents.length} private repo events`)
+      events = _.union(events, privateEvents)
+    } catch (e) {
+      logger.debug(`Unable to access private repos for ${account.username}`)
+    }
+  }
 
   // We count until the GitHub official launch (2008 April)
   const gitHubLaunchingAt = moment('2008-04-01', dateFormat)
@@ -176,28 +261,31 @@ async function execute (account, normalizedSkillNames) {
 
   // Loop until the GitHub launching date
   while (startOfMonth >= gitHubLaunchingAt) {  // eslint-disable-line
-    const endOfMonth = moment(startOfMonth).endOf('month')
+    try {
+      const endOfMonth = moment(startOfMonth).endOf('month')
 
-    const query = `from=${startOfMonth.format(dateFormat)}&to=${endOfMonth.format(dateFormat)}`
+      const query = `from=${startOfMonth.format(dateFormat)}&to=${endOfMonth.format(dateFormat)}`
 
-    // Get commits
-    const commits = await fetchCommits(account.username, query)
-    _.each(commits, (item) => {
-      item.date = startOfMonth.toDate()
-    })
-    logger.debug(`Found ${commits.length} Commits`)
+      // Get commits
+      const commits = await fetchCommits(account.username, query)
+      _.each(commits, (item) => {
+        item.date = startOfMonth.toDate()
+      })
+      logger.debug(`Found ${commits.length} Commits`)
 
-    // Get PR reviews
-    const pullRequestReviews = await fetchPullRequestReviews(account.username, query)
-    logger.debug(`Found ${pullRequestReviews.length} Pull Request Reviews`)
+      // Get PR reviews
+      const pullRequestReviews = await fetchPullRequestReviews(account.username, query)
+      logger.debug(`Found ${pullRequestReviews.length} Pull Request Reviews`)
 
-    // Get PRs
-    const pullRequests = await fetchPullRequests(account.username, query)
-    logger.debug(`Found ${pullRequests.length} Pull Requests`)
+      // Get PRs
+      const pullRequests = await fetchPullRequests(account.username, query)
+      logger.debug(`Found ${pullRequests.length} Pull Requests`)
 
-    // Merge into the list
-    events = _.union(events, commits, pullRequestReviews, pullRequests)
-
+      // Merge into the list
+      events = _.union(events, commits, pullRequestReviews, pullRequests)
+    } catch (error) {
+      logger.debug('Could not fetch public data for above date range.  Skipping.')
+    }
     // Continue with the previous month
     startOfMonth.add(-1, 'months')
   }
@@ -206,7 +294,7 @@ async function execute (account, normalizedSkillNames) {
 
   // Get unique repo names
   const repoNames = _.uniq(_.map(events, 'repo'))
-  const repoLanguages = await getLanguages(repoNames, normalizedSkillNames)
+  const repoLanguages = await getLanguages(repoNames, normalizedSkillNames, Authorization)
 
   // Filter only events with language
   events = _.filter(events, (event) => repoLanguages[event.repo])

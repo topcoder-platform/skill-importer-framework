@@ -56,6 +56,38 @@ create.schema = {
 }
 
 /**
+ * Create a new account if it doesn't exist, or return the existing one.
+ *
+ * @param {Object} account the account to create/find
+ * @returns {Object} the account
+ */
+async function createIfNotExists (account) {
+  // User can connect only one external account per website
+  let userAccounts = await Account
+    .query('website').eq(account.website)
+    .filter('userUid').eq(account.userUid)
+    .exec()
+
+  if (!_.isEmpty(userAccounts) && (userAccounts[0].username !== account.username)) {
+    throw createError.BadRequest(`You have already connected a different username from website ${account.website}`)
+  }
+
+  if (_.isEmpty(userAccounts)) {
+    return create(account)
+  }
+
+  return userAccounts[0]
+}
+
+createIfNotExists.schema = {
+  account: Joi.object().keys({
+    userUid: Joi.string().uuid().required(),
+    username: Joi.string().required(),
+    website: Joi.string().valid(_.values(Websites)).required()
+  })
+}
+
+/**
  * Search accounts.
  *
  * @param {Object} criteria the search criteria
@@ -127,6 +159,7 @@ getImportingStatus.schema = {
 
 module.exports = {
   create,
+  createIfNotExists,
   search,
   remove,
   getImportingStatus

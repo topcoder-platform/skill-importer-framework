@@ -326,6 +326,37 @@ None.
 
 The data is fetched by API either from the [API endpoints](https://developer.github.com/v3/) directly or from the [octokit rest.js library](https://octokit.github.io/rest.js/).
 
+Currently the importer is utilizing HTML scraping of the unofficial non-API events endpoints.  This has the advantage of importing events going back to 2008, but is time-consuming and does not support OAuth to get private repo events.
+
+GitHub does provide an endpoint that will return events for a user when a Bearer OAuth token is provided:
+
+GET `https://api.github.com/users/username/events`
+
+This provides a list of data with the following format:
+
+```json
+[{
+    "id": "1",
+    "type": "EventType",
+    "repo": {
+        "id": 147274816,
+        "name": "owner/reponame",
+        "url": "https://api.github.com/repos/owner/reponame"
+    },
+    "payload": {},
+    "public": false,
+    "created_at": "2018-09-04T02:05:47Z"
+}]
+```
+
+The payload varies for each type of event.
+
+The response can be filtered for the `PullRequestEvent` and `PushEvent` types to use for PR/PR Review and Commit skill imports.
+
+**This has some limitations:**
+- Officially only returns events going back 90 days, but seems to return events from significantly longer
+- Capped at the most recent 300 (in pages of 30)
+
 ### 6.2 How to authenticate, by oAuth, Auth0 or any other ways?
 
 GitHub API allows the program to get the authenticated user access token to perform various operations and extend the request limit. Authentication can be done using OAuth 2.0 and octokit/rest.js.
@@ -441,7 +472,7 @@ If the data fetching failed, the program will print out the error and retry for 
 
 ### 6.8 Remarks
 
-None
+Please see GitLab section 8.8 for information regarding private repositories.
 
 ## 7. StackOverflow
 
@@ -547,6 +578,19 @@ There is no API endpoint that provides a list of the languages for a given repo.
 
 The best approach may be a hybrid between the API request for the user's events, and scraping the chart page for the affected repo's skills.
 
+Update: There is an API endpoint that returns the languages used for the entire project, and not just a particular branch:
+
+GET `https://gitlab.com/api/v4/projects/projectId/languages` which has a response in this format:
+```json
+{
+    "TypeScript": 41.39,
+    "HTML": 39.86,
+    "CSS": 18.49,
+    "JavaScript": 0.26
+}
+```
+
+
 ### 8.2 How to authenticate, by oAuth, Auth0 or any other ways?
 GitLab fully supports the OAuth process.
 
@@ -566,4 +610,27 @@ New commits/MRs/MR Reviews to a repo, or a language being added to the repo char
 If the data fetching failed, the program will print out the error and retry for another 10 times. If all retries fail, the data fetching will stop and the program will keep the most recent imported data.
 
 ### 8.8 Remarks
-None.
+
+#### Possible Approaches for Importing Private Repositories
+
+1. Store Access Tokens in DB
+- Can utilize AES 256 encryption with secret stored in AWS ENV variable to explicitly encrypt/decrypt the access key
+- Can use [AWS Dynamo 'Encryption at Rest'](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/EncryptionAtRest.html) to transparently encrypt the Accounts table, or the entire database. Note: There may be a cost associated with this feature.
+- Protects against compromised DB, but not compromised container.
+- Could optionally use asymmetric encryption and run the private import job via an endpoint that accepts the decryption key for the access tokens.  This shifts part of the security to another microservice and adds another layer of separation.
+- **Storing the tokens is high-risk because of the following:**
+- Both GitHub and GitLab generate OAuth tokens with no expiry date.
+- Neither GitHub nor GitLab offer an OAuth scope that is limited to read-only access to private repositories:
+  - GitHub offers the 'repo' scope which confers complete read-write access to all private/public repositories that the user has permissions to.
+  - GitLab offers the 'api' scope which gives complete and total read-write access to every facet of the GitLab platform for the user.
+  - These both provide wide and high-impact permissions, far more than is required for the skill-importer.
+
+2. Store Access Tokens in Memory
+- This will still allow the importer to operate on Private Repositories during its scheduled job, but if the service is restarted, the keys are lost and the user will need to re-authenticate through OAuth.
+
+3. On-demand private repo importing using an 'Import Private Repos Now' Button (Recommended)
+- Token is used once per click and is not stored in memory or in the database.
+- The user can authorize the importer separately for the automatic importing of public repos, and the on-demand import of private repos.
+- User can control exactly when their private repos are accessed.
+- Convenient:  OAuth process only required for the first click of the button, subsequent clicks do not require the user to reauthorize.
+- It would also be possible in the future to allow the user to select which of their private repositories should be imported

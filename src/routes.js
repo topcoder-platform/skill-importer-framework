@@ -53,6 +53,10 @@ router.get(
   passport.authenticate(Websites.GITHUB.toLowerCase())
 )
 router.get(
+  `/connect/${Websites.GITHUB.toLowerCase()}/private`,
+  passport.authenticate(Websites.GITHUB.toLowerCase(), { scope: [ 'repo' ] })
+)
+router.get(
   `/connect/${Websites.GITHUB.toLowerCase()}/callback`,
   passport.authenticate(Websites.GITHUB.toLowerCase(), passportOptions),
   async (req, res) => {
@@ -61,7 +65,7 @@ router.get(
     res.status(201).send({ message: 'Account is connected successfully' })
 
     // Start the importing immediately for the new GitHub account
-    await ImporterJob.run(req.accountId)
+    await ImporterJob.run(req.accountId, req.accessToken)
   }
 )
 
@@ -69,6 +73,10 @@ router.get(
 router.get(
   `/connect/${Websites.GITLAB.toLowerCase()}`,
   passport.authenticate(Websites.GITLAB.toLowerCase())
+)
+router.get(
+  `/connect/${Websites.GITLAB.toLowerCase()}/private`,
+  passport.authenticate(Websites.GITLAB.toLowerCase(), { scope: [ 'api' ] })
 )
 router.get(
   `/connect/${Websites.GITLAB.toLowerCase()}/callback`,
@@ -79,8 +87,7 @@ router.get(
     res.status(201).send({ message: 'Account is connected successfully' })
 
     // Start the importing immediately for the new GitLab account
-    // No `await` because we (probably) don't want this to delay the promise as it happens in the background
-    ImporterJob.run(req.accountId)
+    await ImporterJob.run(req.accountId, req.accessToken)
   }
 )
 

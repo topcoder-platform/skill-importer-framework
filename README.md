@@ -102,6 +102,15 @@ Connect GitHub Demo: http://skill-importer-api-dev3.us-east-1.elasticbeanstalk.c
 - GitHub/GitLab will redirect you back to `http://localhost:3000/api/v1/connect/github/callback`
 - Check the DB to verify that GitHub/GitLab account is created (you can use DynamoDB console, or any client tool)
 
+### Importing from Private Repositories
+- Go to `http://localhost:3000/html` (this url is only available for `NODE_ENV !== 'production'`)
+- Enter username, password or you can use the pre-populated
+- Click `Login`
+- Check the login response to make sure the user is logged in successfully
+- Click `Private Import GitHub` or `Private Import GitLab`
+- You will be redirected to GitHub/GitLab, follow the screens to authenticate with GitHub/GitLab
+- Private repositories will be imported on-demand
+
 ### To verify the Importer Job
 - Use Postman call (`Run Importer Job`) to make call to the API to run the job immediately
 - Or wait until job runs (see `IMPORTER_CRON_TIME` config)

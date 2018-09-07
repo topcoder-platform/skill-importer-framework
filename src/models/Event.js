@@ -12,6 +12,7 @@ const schema = new Schema({
   skillId: {type: String, require: true, index: {global: true}},
   affectedPoints: { type: Number, required: true },
   deletedAt: { type: Date },
+  isPrivateRepo: { type: Boolean, default: false },
 
   // For searching easier
   affectedSkillName: { type: String, required: true },
