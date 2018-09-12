@@ -246,6 +246,8 @@ Additionally, the `r_fullprofile` permission would allow access to the following
 
 These could also be scanned for skill-related keywords.
 
+This information can also be accessed without an access_token using this endpoint: GET `https://api.linkedin.com/v2/people/(id:{userId})`
+
 [Source](https://developer.linkedin.com/docs/fields/full-profile)
 
 ### 4.4 Are there any rate limit of requests of API usage or scraping?
@@ -356,6 +358,12 @@ The response can be filtered for the `PullRequestEvent` and `PushEvent` types to
 **This has some limitations:**
 - Officially only returns events going back 90 days, but seems to return events from significantly longer
 - Capped at the most recent 300 (in pages of 30)
+
+Alternative strategy to import private repositories using a 'Topcoder Skill Importer User':
+- Users can invite the importer user as a collaborator to their private repositories.
+- The importer can get and accept any pending repo invites using the GET/PATCH `https://api.github.com/user/repository_invitations` endpoint
+- The importer can then create a list of private repo events using the GET `https://api.github.com/user/repos` endpoint
+- This list of private repo events can be searched for every user during importing, to find any corresponding private repo events
 
 ### 6.2 How to authenticate, by oAuth, Auth0 or any other ways?
 
@@ -590,6 +598,9 @@ GET `https://gitlab.com/api/v4/projects/projectId/languages` which has a respons
 }
 ```
 
+Alternative strategy to import private repositories using a 'Topcoder Skill Importer User':
+- Users can add the importer user to their private repositories with the `Reporter` permissions.
+- The importer will automatically 'see' private repo events using the existing events endpoints (detailed above)
 
 ### 8.2 How to authenticate, by oAuth, Auth0 or any other ways?
 GitLab fully supports the OAuth process.
@@ -628,9 +639,16 @@ If the data fetching failed, the program will print out the error and retry for 
 2. Store Access Tokens in Memory
 - This will still allow the importer to operate on Private Repositories during its scheduled job, but if the service is restarted, the keys are lost and the user will need to re-authenticate through OAuth.
 
-3. On-demand private repo importing using an 'Import Private Repos Now' Button (Recommended)
+3. On-demand private repo importing using an 'Import Private Repos Now' Button
 - Token is used once per click and is not stored in memory or in the database.
 - The user can authorize the importer separately for the automatic importing of public repos, and the on-demand import of private repos.
 - User can control exactly when their private repos are accessed.
 - Convenient:  OAuth process only required for the first click of the button, subsequent clicks do not require the user to reauthorize.
-- It would also be possible in the future to allow the user to select which of their private repositories should be imported
+
+4. Have a dedicated 'TopCoder Skill Importer' user for both GitLab and GitHub that users can invite to their private repositories. (Recommended)
+- Co-Pilots may also add this user to TopCoder projects to allow them to be imported.
+- Both platforms allow a Private-Access-Token to be generated for this user, which can be passed to the importer using ENV variables.  Although the techniques for both platforms are different, they will allow the importer to see events for users on private repositories, provided the importer has been added to them by the repo maintainers.
+- The GitLab `reporter` permission only allows read access to the repository.
+- The GitHub collaborator invite does allow push access to the repository.  The Private-Access-Token for the `Topcoder Importer User Account` is stored in an AWS config variable, and is not stored in the database.
+- Only imports events from private repositories if they have 'opted-in'.
+- Does not store any private access_tokens in the database, and only requires public permissions during the OAuth process.

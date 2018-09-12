@@ -25,8 +25,8 @@ module.exports = {
     passReqToCallback: true
   },
 
-  // Create a new token at https://github.com/settings/tokens
-  GITHUB_ADMIN_TOKEN: process.env.GITHUB_ADMIN_TOKEN || 'token',
+  // Create a new token at https://github.com/settings/tokens with 'repo' permissions
+  GITHUB_IMPORTER_USER_TOKEN: process.env.GITHUB_IMPORTER_USER_TOKEN || '',
 
   // Create a new OAuth app at https://gitlab.com/profile/applications
   GITLAB_AUTH_CONFIG: {
@@ -36,6 +36,6 @@ module.exports = {
     passReqToCallback: true
   },
 
-  // Optional.  Create a new token at https://gitlab.com/profile/personal_access_tokens
-  GITLAB_ADMIN_TOKEN: process.env.GITLAB_ADMIN_TOKEN || ''
+  // Optional.  Create a new token at https://gitlab.com/profile/personal_access_tokens for the Importer User (to be invited to private repos)
+  GITLAB_IMPORTER_USER_TOKEN: process.env.GITLAB_IMPORTER_USER_TOKEN || ''
 }

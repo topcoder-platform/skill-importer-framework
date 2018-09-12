@@ -24,9 +24,9 @@ The following variables can be configured:
 - `AWS_DYNAMODB_CONFIG` the AWS DynamoDb configuration, it includes 3 environment variables: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_REGION`
 - `IMPORTER_CRON_TIME` the cron time to run the importer (using cron-like syntax), default to everyday midnight
 - `GITHUB_AUTH_CONFIG` the GitHub OAuth config
-- `GITHUB_ADMIN_TOKEN` the GitHub access token to access GitHub API (https://github.com/settings/tokens)
+- `GITHUB_IMPORTER_USER_TOKEN` the GitHub Private Access Token generated for the Skill Importer User that can be invited to private repos to allow importing
 - `GITLAB_AUTH_CONFIG` the GitHub OAuth config ( Set the `GITLAB_CLIENT_ID` and `GITLAB_CLIENT_SECRET` ENV variables )
-- `GITLAB_ADMIN_TOKEN` the GitLab Private Access Token to access private repos via GitHub API (https://gitlab.com/profile/personal_access_tokens).  Optional.
+- `GITLAB_IMPORTER_USER_TOKEN` the GitLab Private Access Token generated for the Skill Importer User that can be invited to private repos to allow importing
 
 ## Create Apps for OAuth Websites
 
@@ -80,9 +80,6 @@ The code follows StandardJS.
 - Configure new environment variables to correct values: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `GITHUB_CALLBACK_URL`, `GITLAB_CLIENT_ID`, `GITLAB_CLIENT_SECRET`, `GITLAB_CALLBACK_URL`. You can use the AWS Console or `eb setenv key=value`
 - `eb open` to open that app in web browser
 
-API Demo: http://skill-importer-api-dev3.us-east-1.elasticbeanstalk.com/api/v1
-Connect GitHub Demo: http://skill-importer-api-dev3.us-east-1.elasticbeanstalk.com/html
-
 ## Verification
 
 - Start the app
@@ -103,13 +100,11 @@ Connect GitHub Demo: http://skill-importer-api-dev3.us-east-1.elasticbeanstalk.c
 - Check the DB to verify that GitHub/GitLab account is created (you can use DynamoDB console, or any client tool)
 
 ### Importing from Private Repositories
-- Go to `http://localhost:3000/html` (this url is only available for `NODE_ENV !== 'production'`)
-- Enter username, password or you can use the pre-populated
-- Click `Login`
-- Check the login response to make sure the user is logged in successfully
-- Click `Private Import GitHub` or `Private Import GitLab`
-- You will be redirected to GitHub/GitLab, follow the screens to authenticate with GitHub/GitLab
-- Private repositories will be imported on-demand
+- Create a new user for GitLab/GitHub which will be linked to the importer, and can be invited to private repositories
+- Generate a Public Access Token for this user
+    - GitHub: Visit (https://github.com/settings/tokens) and click `Generate new Token`, select `repo` permission and all of its sub-permissions, use this token for `GITHUB_IMPORTER_USER_TOKEN`
+    - GitLab: Visit (https://gitlab.com/profile/personal_access_tokens) and select 'api' for the scope.  Click `Create personal access token` and use this token for `GITLAB_IMPORTER_USER_TOKEN`
+ - This user can then be invited to a private repository to allow the importer to import events for any users that are members of the repository
 
 ### To verify the Importer Job
 - Use Postman call (`Run Importer Job`) to make call to the API to run the job immediately

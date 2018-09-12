@@ -15,13 +15,12 @@ const {Websites, Roles} = require('../constants')
  * Connect an external website account to the current logged user.
  *
  * @param {Object} req the request
- * @param {String} accessToken OAuth Token which may be used for private importing
  * @param {Object} profile the profile
  * @param {Function} done the done callback
  * @param {String} website the website
  * @private
  */
-function connectAccount (req, accessToken, profile, done, website) {
+function connectAccount (req, profile, done, website) {
   const user = req.user
   if (!user) {
     throw createError.Unauthorized('Anonymous is not allowed to access')
@@ -38,7 +37,6 @@ function connectAccount (req, accessToken, profile, done, website) {
     .then((account) => {
       // Store the created account id to the request
       req.accountId = account.id
-      req.accessToken = accessToken
       done(null, user)
     })
     .catch(done)
@@ -76,12 +74,12 @@ module.exports = (passport) => {
 
   passport.use(new GithubStrategy(config.GITHUB_AUTH_CONFIG,
     (req, accessToken, refreshToken, profile, done) => {
-      connectAccount(req, accessToken, profile, done, Websites.GITHUB)
+      connectAccount(req, profile, done, Websites.GITHUB)
     }))
 
   passport.use(new GitlabStrategy(config.GITLAB_AUTH_CONFIG,
     (req, accessToken, refreshToken, profile, done) => {
-      connectAccount(req, accessToken, profile, done, Websites.GITLAB)
+      connectAccount(req, profile, done, Websites.GITLAB)
     }))
 
   // Serialize the user for the session

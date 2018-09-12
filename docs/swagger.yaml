@@ -473,51 +473,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorMessage'
-  '/connect/{website}/private':
-    get:
-      tags:
-        - account
-      summary: Connect endpoint that will request access to private details/repositories from the user.
-      parameters:
-        - name: website
-          in: path
-          required: true
-          schema:
-            type: string
-            description: 'the OAuth2 website, such as `github`'
-      responses:
-        '201':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Account'
-        '400':
-          description: >-
-            invalid request | website already exists for the logged in member |
-            username does not exist in the website | username already exists
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorMessage'
-        '401':
-          description: action is not allowed for anonymous | invalid access token
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorMessage'
-        '403':
-          description: action is not allowed for non-Member
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorMessage'
-        '500':
-          description: server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorMessage'
   '/connect/{website}/callback':
     get:
       tags:

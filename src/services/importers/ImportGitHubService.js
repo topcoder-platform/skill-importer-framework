@@ -15,7 +15,7 @@ const logger = require('../../common/logger')
 // The Axios instance to make calls to GitHub website and API
 const axios = Axios.create({
   headers: {
-    'Authorization': `token ${config.GITHUB_ADMIN_TOKEN}`
+    'Authorization': config.GITHUB_IMPORTER_USER_TOKEN ? `Bearer ${config.GITHUB_IMPORTER_USER_TOKEN}` : ''
   }
 })
 axiosRetry(axios, {
@@ -41,7 +41,7 @@ async function fetchCommits (username, query) {
   const url = `https://github.com/users/${username}/created_commits?${query}`
   logger.debug(`Requesting ${url}`)
 
-  const response = await axios(url)
+  const response = await axios(url, { params: { Authorization: null } })
   const $ = cherio.load(response.data)
   return $('li a.muted-link')
     .get()
@@ -69,7 +69,7 @@ async function fetchPullRequestReviews (username, query) {
   const url = `https://github.com/users/${username}/created_pull_request_reviews?${query}`
   logger.debug(`Requesting ${url}`)
 
-  const response = await axios(url)
+  const response = await axios(url, { params: { Authorization: null } })
   const $ = cherio.load(response.data)
   return $('li')
     .get()
@@ -100,7 +100,7 @@ async function fetchPullRequests (username, query) {
   const url = `https://github.com/users/${username}/created_pull_requests?${query}`
   logger.debug(`Requesting ${url}`)
 
-  const response = await axios(url)
+  const response = await axios(url, { params: { Authorization: null } })
   const $ = cherio.load(response.data)
   return $('li')
     .get()
@@ -124,15 +124,14 @@ async function fetchPullRequests (username, query) {
  * Get main language of the repos.
  * @param {Array} repoNames the repo names
  * @param {Array} normalizedSkillNames the normalized skill names
- * @param {String} Authorization Optional Auth credentials for importing private repos
  * @returns {Object} the repo language map
  * @private
  */
-async function getLanguages (repoNames, normalizedSkillNames, Authorization) {
+async function getLanguages (repoNames, normalizedSkillNames) {
   const map = {}
   for (let repoName of repoNames) {
     try {
-      const response = await axios(`https://api.github.com/repos/${repoName}/languages`, { headers: { Authorization } })
+      const response = await axios(`https://api.github.com/repos/${repoName}/languages`)
       const languages = response.data
 
       logger.debug(`Repo ${repoName} languages: ${inspect(languages)}`)
@@ -166,32 +165,16 @@ async function getLanguages (repoNames, normalizedSkillNames, Authorization) {
 }
 
 /**
- * Get the private repo events for the user from the official GitHub API
+ * Get the private repo events for the user from the private events map generated in the preImport step.
  * @param {String} username The user's GitHub handle
- * @param {String} Authorization Auth credentials for importing private repos
+ * @param {Array} invitedPrivateRepoEvents List of all events found on invited repositories
  * @returns {Array} the list of private repo events
  * @private
  */
-async function getPrivateRepoEvents (username, Authorization) {
-  let events = []
-  let page = 0
+async function getPrivateRepoEvents (username, invitedPrivateRepoEvents) {
+  const userEvents = _.filter(invitedPrivateRepoEvents, event => _.get(event, 'actor.login') === username)
 
-  // GitHub will return a maximum of 10 pages at 30 events per page.
-  while (page < 10) {
-    page += 1
-    const {data: pageEvents} = await axios(`https://api.github.com/users/${username}/events`, {
-      headers: {Authorization},
-      params: {page}
-    })
-    if (_.isEmpty(pageEvents)) {
-      break
-    }
-    events = _.concat(events, pageEvents)
-  }
-
-  const privateEvents = _.filter(events, event => !event.public)
-
-  const processedEvents = _.map(privateEvents, event => {
+  const processedEvents = _.map(userEvents, event => {
     if (event.type === 'PullRequestEvent' && _.get(event, 'payload.action') === 'opened') {
       return ({
         repo: _.get(event, 'repo.name'),
@@ -233,24 +216,73 @@ async function getPrivateRepoEvents (username, Authorization) {
 }
 
 /**
+ * Accept any pending repo invitations and build a data map of all private repo events for importing
+ * @returns {Array} Events from all invited private repos
+ */
+async function acceptPrivateRepoInvitations () {
+  const {data: invitations} = await axios(`https://api.github.com/user/repository_invitations`)
+  for (let invitation of invitations) {
+    await axios.patch(`https://api.github.com/user/repository_invitations/${invitation.id}`)
+  }
+}
+
+/**
+ * Build a list of events for all private repos that the importer has been invited to.
+ * @returns {Array} Events from all invited private repos
+ */
+async function getAllInvitedPrivateReposEvents () {
+  let allEvents = []
+  const { data: repos } = await axios(`https://api.github.com/user/repos`)
+  for (let repo of repos) {
+    const name = repo.full_name
+    let events = []
+    let page = 0
+    // GitHub will return a maximum of 10 pages at 30 events per page.
+    while (page < 10) {
+      page += 1
+      const {data: pageEvents} = await axios(`https://api.github.com/repos/${name}/events`, {
+        params: {page}
+      })
+      if (_.isEmpty(pageEvents)) {
+        break
+      }
+      events = _.concat(events, pageEvents)
+    }
+    allEvents = _.concat(allEvents, events)
+  }
+  return allEvents
+}
+
+/**
+ * Before importing, accept any pending repo invitations, and build a list of all private repo events for importing
+ * @returns {Array} Events from all invited private repos
+ */
+async function preImport () {
+  try {
+    await acceptPrivateRepoInvitations()
+    return await getAllInvitedPrivateReposEvents()
+  } catch (error) {
+    logger.info('Could not accept private repo invitations or get private repo events for the GitHub importer.  This probably means that a GITHUB_IMPORTER_USER_TOKEN was not provided.')
+    return []
+  }
+}
+
+/**
  * Fetch events from the website.
  * @param {Object} account the account
  * @param {Array} normalizedSkillNames the normalized skill names
- * @param {String} accessToken Optional OAuth token to allow import from private repositories.
+ * @param {Array} invitedPrivateRepoEvents Optional, events from all invited private repos.  This can be generated in the preImport step.
  * @returns {Array} the array of events
  */
-async function execute (account, normalizedSkillNames, accessToken) {
-  const Authorization = accessToken ? `Bearer ${accessToken}` : null
+async function execute (account, normalizedSkillNames, invitedPrivateRepoEvents) {
   let events = []
 
-  if (Authorization) {
-    try {
-      const privateEvents = await getPrivateRepoEvents(account.username, Authorization)
-      logger.debug(`Found ${privateEvents.length} private repo events`)
-      events = _.union(events, privateEvents)
-    } catch (e) {
-      logger.debug(`Unable to access private repos for ${account.username}`)
-    }
+  try {
+    const privateEvents = await getPrivateRepoEvents(account.username, invitedPrivateRepoEvents)
+    logger.debug(`Found ${privateEvents.length} private repo events`)
+    events = _.union(events, privateEvents)
+  } catch (e) {
+    logger.debug(`Unable to access private repos for ${account.username}`)
   }
 
   // We count until the GitHub official launch (2008 April)
@@ -294,7 +326,7 @@ async function execute (account, normalizedSkillNames, accessToken) {
 
   // Get unique repo names
   const repoNames = _.uniq(_.map(events, 'repo'))
-  const repoLanguages = await getLanguages(repoNames, normalizedSkillNames, Authorization)
+  const repoLanguages = await getLanguages(repoNames, normalizedSkillNames)
 
   // Filter only events with language
   events = _.filter(events, (event) => repoLanguages[event.repo])
@@ -311,7 +343,8 @@ async function execute (account, normalizedSkillNames, accessToken) {
 }
 
 module.exports = {
-  execute
+  execute,
+  preImport
 }
 
 helper.buildService(module.exports, 'ImportGitHubService')

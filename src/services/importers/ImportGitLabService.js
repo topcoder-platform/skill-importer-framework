@@ -14,7 +14,7 @@ const logger = require('../../common/logger')
 // The Axios instance to make calls to GitLab website and API
 const axios = Axios.create({
   headers: {
-    'Private-Token': `${config.GITLAB_ADMIN_TOKEN}`
+    'Private-Token': `${config.GITLAB_IMPORTER_USER_TOKEN}`
   },
   baseURL: 'https://gitlab.com/api/v4/'
 })
@@ -30,12 +30,11 @@ axiosRetry(axios, {
 /**
  * Get user commit events.
  * @param {String} userId the userId
- * @param {String} Authorization Auth credentials for importing private repos
  * @returns {Array} the results
  * @private
  */
-async function getCommits (userId, Authorization) {
-  const { data: pushEvents } = await axios(`users/${userId}/events`, { headers: { Authorization }, params: { action: 'pushed' } })
+async function getCommits (userId) {
+  const { data: pushEvents } = await axios(`users/${userId}/events`, { params: { action: 'pushed' } })
 
   return _.map(pushEvents, (event) => {
     const projectId = event.project_id
@@ -54,12 +53,11 @@ async function getCommits (userId, Authorization) {
 /**
  * Get user open/create merge request events.
  * @param {String} userId the userId
- * @param {String} Authorization Auth credentials for importing private repos
  * @returns {Array} the results
  * @private
  */
-async function getMergeRequests (userId, Authorization) {
-  const { data: mergeEvents } = await axios(`users/${userId}/events`, { headers: { Authorization }, params: { action: 'created', target_type: 'merge_request' } })
+async function getMergeRequests (userId) {
+  const { data: mergeEvents } = await axios(`users/${userId}/events`, { params: { action: 'created', target_type: 'merge_request' } })
 
   return _.map(mergeEvents, (event) => {
     const projectId = event.project_id
@@ -77,12 +75,11 @@ async function getMergeRequests (userId, Authorization) {
 /**
  * Get user approve/review merge request events.
  * @param {String} userId the userId
- * @param {String} Authorization Auth credentials for importing private repos
  * @returns {Array} the results
  * @private
  */
-async function getMergeRequestReviews (userId, Authorization) {
-  const { data: mergeEvents } = await axios(`users/${userId}/events`, { headers: { Authorization }, params: { action: 'merged', target_type: 'merge_request' } })
+async function getMergeRequestReviews (userId) {
+  const { data: mergeEvents } = await axios(`users/${userId}/events`, { params: { action: 'merged', target_type: 'merge_request' } })
 
   return _.map(mergeEvents, (event) => {
     const projectId = event.project_id
@@ -103,11 +100,10 @@ async function getMergeRequestReviews (userId, Authorization) {
  * a human-readable html page where this data can be scraped.
  * @param {Array} projectIds the project IDs
  * @param {Array} normalizedSkillNames the normalized skill names
- * @param {String} Authorization Auth credentials for importing private repos
  * @returns {Object} the project (repo) language map and name map and visibility map (public or private)
  * @private
  */
-async function getProjectNamesAndLanguages (projectIds, normalizedSkillNames, Authorization) {
+async function getProjectNamesAndLanguages (projectIds, normalizedSkillNames) {
   const projectLanguages = {}
   const projectNames = {}
   const privateProjects = {}
@@ -115,7 +111,7 @@ async function getProjectNamesAndLanguages (projectIds, normalizedSkillNames, Au
   for (let id of projectIds) {
     try {
       // First it is necessary to retrieve the web_url and name for the project
-      const { data: projectInfo } = await axios(`projects/${id}`, { headers: { Authorization } })
+      const { data: projectInfo } = await axios(`projects/${id}`)
       const projectName = projectInfo.name
 
       projectNames[id] = projectName
@@ -124,7 +120,7 @@ async function getProjectNamesAndLanguages (projectIds, normalizedSkillNames, Au
         privateProjects[id] = true
       }
 
-      const { data: languages } = await axios(`projects/${id}/languages`, { headers: { Authorization } })
+      const { data: languages } = await axios(`projects/${id}/languages`)
 
       logger.debug(`Project (repo) ${projectName} languages: ${inspect(languages)}`)
 
@@ -160,52 +156,55 @@ async function getProjectNamesAndLanguages (projectIds, normalizedSkillNames, Au
  * Fetch events from the website.
  * @param {Object} account the account
  * @param {Array} normalizedSkillNames the normalized skill names
- * @param {String} accessToken Optional OAuth token to allow import from private repositories.
  * @returns {Array} the array of events
  */
-async function execute (account, normalizedSkillNames, accessToken) {
-  // Retrieve User Info using stored username
-  const Authorization = accessToken ? `Bearer ${accessToken}` : null
-  const { data: userInfo } = await axios(`/users`, { headers: { Authorization }, params: { username: account.username } })
-  const userId = userInfo[0].id
+async function execute (account, normalizedSkillNames) {
+  try {
+    // Retrieve User Info using stored username
+    const {data: userInfo} = await axios(`/users`, {params: {username: account.username}})
+    const userId = userInfo[0].id
 
-  logger.debug(`Found GitLab User: ${inspect(userInfo)}`)
+    logger.debug(`Found GitLab User: ${inspect(userInfo)}`)
 
-  // Retrieve events to search for skill data
-  const commits = await getCommits(userId, Authorization)
-  logger.debug(`Found ${commits.length} Commits`)
+    // Retrieve events to search for skill data
+    const commits = await getCommits(userId)
+    logger.debug(`Found ${commits.length} Commits`)
 
-  const mergeRequests = await getMergeRequests(userId, Authorization)
-  logger.debug(`Found ${mergeRequests.length} Merge Requests`)
+    const mergeRequests = await getMergeRequests(userId)
+    logger.debug(`Found ${mergeRequests.length} Merge Requests`)
 
-  const mergeRequestReviews = await getMergeRequestReviews(userId, Authorization)
-  logger.debug(`Found ${mergeRequestReviews.length} Merge Request Reviews`)
+    const mergeRequestReviews = await getMergeRequestReviews(userId)
+    logger.debug(`Found ${mergeRequestReviews.length} Merge Request Reviews`)
 
-  let events = _.union(commits, mergeRequests, mergeRequestReviews)
-  logger.debug(`Found ${events.length} events`)
+    let events = _.union(commits, mergeRequests, mergeRequestReviews)
+    logger.debug(`Found ${events.length} events`)
 
-  // Get unique repo names
-  const projectIds = _.uniq(_.map(events, 'projectId'))
-  const { projectNames, projectLanguages, privateProjects } = await getProjectNamesAndLanguages(projectIds, normalizedSkillNames, Authorization)
+    // Get unique repo names
+    const projectIds = _.uniq(_.map(events, 'projectId'))
+    const { projectNames, projectLanguages, privateProjects } = await getProjectNamesAndLanguages(projectIds, normalizedSkillNames)
 
-  // Filter only events with language
-  events = _.filter(events, (event) => projectLanguages[event.projectId])
+    // Filter only events with language
+    events = _.filter(events, (event) => projectLanguages[event.projectId])
 
-  _.each(events, (event) => {
-    // Map the skill name
-    const projectName = projectNames[event.projectId]
-    event.affectedSkillName = projectLanguages[event.projectId]
-    event.isPrivateRepo = !!privateProjects[event.projectId]
-    event.text = event.finishText(projectName)
+    _.each(events, (event) => {
+      // Map the skill name
+      const projectName = projectNames[event.projectId]
+      event.affectedSkillName = projectLanguages[event.projectId]
+      event.isPrivateRepo = !!privateProjects[event.projectId]
+      event.text = event.finishText(projectName)
 
-    delete event.finishText
-    delete event.projectId
+      delete event.finishText
+      delete event.projectId
 
-    return event
-  })
+      return event
+    })
 
-  logger.debug(`Found ${events.length} events (${_.size(privateProjects)} private) matching NormalizedSkillNames`)
-  return events
+    logger.debug(`Found ${events.length} events (${_.size(privateProjects)} private) matching NormalizedSkillNames`)
+    return events
+  } catch (error) {
+    logger.error(`Unable to import account for username ${account.username}.  This is likely caused by the api being down/unavailable, or an invalid GITLAB_IMPORTER_USER_TOKEN. Importing will be halted.`)
+    throw error
+  }
 }
 
 module.exports = {

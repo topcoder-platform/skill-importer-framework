@@ -122,6 +122,7 @@ function decorateWithValidator (service) {
  * @param {String} serviceName the service name
  */
 function buildService (service, serviceName) {
+  service.preImport = service.preImport || _.noop
   decorateWithValidator(service)
   decorateWithLogging(service, serviceName)
 }

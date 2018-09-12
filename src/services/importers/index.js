@@ -16,9 +16,8 @@ const importerServices = requireDir('.')
  * Update skills and events for the account and fetched events.
  * @param {Object} account the account
  * @param {Array} events the events
- * @param {Boolean} isPrivateImport Set to true if these results were from a private on-demand import
  */
-async function updateSkillsAndEvents (account, events, isPrivateImport = false) {
+async function updateSkillsAndEvents (account, events) {
   const skills = await helper.findAll(Skill, { accountId: account.id })
   let dbEvents = await helper.findAll(Event, { accountId: account.id })
   dbEvents = _.filter(dbEvents, (dbEvent) => !dbEvent.deletedAt)
@@ -67,20 +66,16 @@ async function updateSkillsAndEvents (account, events, isPrivateImport = false) 
 
   // Soft delete all the dbEvents which don't exist anymore
   await _.map(dbEvents, (dbEvent) => {
-    if (dbEvent.isPrivateRepo && !isPrivateImport) {
-      logger.debug(`Skipping Private Repo during public import ${inspect(dbEvent)}`)
-    } else {
-      logger.debug(`Deleted event ${inspect(dbEvent)}`)
+    logger.debug(`Deleted event ${inspect(dbEvent)}`)
 
-      dbEvent.deletedAt = new Date()
-      return dbEvent.save()
-        .then(() => {
-          // Decrease points
-          const skill = _.find(skills, {id: dbEvent.skillId})
-          skill.points = Math.max(skill.points - dbEvent.affectedPoints, 0)
-          return skill.save()
-        })
-    }
+    dbEvent.deletedAt = new Date()
+    return dbEvent.save()
+      .then(() => {
+        // Decrease points
+        const skill = _.find(skills, {id: dbEvent.skillId})
+        skill.points = Math.max(skill.points - dbEvent.affectedPoints, 0)
+        return skill.save()
+      })
   })
 
   // Update user skill names
@@ -90,9 +85,8 @@ async function updateSkillsAndEvents (account, events, isPrivateImport = false) 
 /**
  * Run the importer job.
  * @param {String} accountId the optional account id, null to run for all accounts
- * @param {String} accessToken Optional OAuth token to allow import from private repositories, must be used with accountId and website.
  */
-async function run (accountId, accessToken) {
+async function run (accountId) {
   let accounts
   if (accountId) {
     accounts = await helper.findAll(Account, { id: accountId })
@@ -103,6 +97,9 @@ async function run (accountId, accessToken) {
 
   // Get all NormalizedSkillNames
   const normalizedSkillNames = await helper.findAll(NormalizedSkillName, {})
+
+  // Allow importers to set up any pre import data, and make any preparation api calls
+  const preImportDataMap = {}
 
   // Run for each account
   for (let account of accounts) {
@@ -124,9 +121,15 @@ async function run (accountId, accessToken) {
     account.importingStartsAt = new Date()
     await account.save()
 
+    if (!preImportDataMap[importerServiceName]) {
+      preImportDataMap[importerServiceName] = (await importerService.preImport()) || true // Prevent multiple preImports if they do not return data
+    }
+
+    const preImportData = preImportDataMap[importerServiceName]
+
     await importerService
-      .execute(account, normalizedSkillNames, accessToken)
-      .then((events) => updateSkillsAndEvents(account, events, Boolean(accessToken)))
+      .execute(account, normalizedSkillNames, preImportData)
+      .then((events) => updateSkillsAndEvents(account, events))
       .then(() => {
         account.importingStatus = ImportingStatuses.COMPLETED
       })
