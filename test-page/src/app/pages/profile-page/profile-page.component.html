@@ -1,0 +1,118 @@
+<mat-card>
+  <mat-card-title>Accounts</mat-card-title>
+  <mat-card-content>
+    <mat-table [dataSource]="accountsData">
+      <ng-container matColumnDef="website">
+        <mat-header-cell *matHeaderCellDef>Connected Website</mat-header-cell>
+        <mat-cell *matCellDef="let account">{{ account.website }}</mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="username">
+        <mat-header-cell *matHeaderCellDef>Website Username</mat-header-cell>
+        <mat-cell *matCellDef="let account">{{ account.username }}</mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="importingStatus">
+        <mat-header-cell *matHeaderCellDef>Importing Status</mat-header-cell>
+        <mat-cell *matCellDef="let account">
+          <mat-icon *ngIf="account.importingStatus === 'COMPLETED'" color="primary">done</mat-icon>
+          <mat-icon *ngIf="account.importingStatus === 'RUNNING'" color="accent">update</mat-icon>
+          <mat-icon *ngIf="account.importingStatus === 'ERROR'" color="warn">error</mat-icon>
+          <span>{{ account.importingStatus }}</span>
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="action">
+        <mat-header-cell *matHeaderCellDef class="actions-column">Action</mat-header-cell>
+        <mat-cell *matCellDef="let account" class="actions-column"><button mat-icon-button (click)="onDeleteAccount(account)"><mat-icon color="warn">delete_forever</mat-icon></button></mat-cell>
+      </ng-container>
+
+      <mat-header-row *matHeaderRowDef="accountTableColumns"></mat-header-row>
+
+      <mat-row *matRowDef="let row; columns: accountTableColumns;"></mat-row>
+    </mat-table>
+    <div class="empty-table" *ngIf="accountsData.length === 0">No Accounts Found</div>
+  </mat-card-content>
+  <mat-card-actions *ngIf="isOwnProfile && !isAdmin">
+    <button mat-button color="primary" (click)="onConnect('github')">Connect GitHub</button>
+    <button mat-button color="primary" (click)="onConnect('gitlab')">Connect GitLab</button>
+  </mat-card-actions>
+  <mat-card-actions *appShowForRoles="['Admin']">
+    <a mat-raised-button [routerLink]="['/events', userUid]" color="accent">View/Edit Events</a>
+  </mat-card-actions>
+</mat-card>
+
+<form *ngIf="isAdmin || isOwnProfile" (ngSubmit)="changePasswordForm.form.valid && onChangePassword()" #changePasswordForm="ngForm">
+<mat-card>
+  <mat-card-title>Change Password</mat-card-title>
+  <mat-card-content>
+      <mat-form-field>
+        <input matInput name="currentPassword" [(ngModel)]="currentPassword" type="password" placeholder="Current Password" required/>
+      </mat-form-field>
+
+      <mat-form-field>
+        <input matInput name="newPassword" [(ngModel)]="newPassword" type="password" placeholder="New Password" required/>
+      </mat-form-field>
+  </mat-card-content>
+  <mat-card-actions>
+    <div class="button-wrapper"><button mat-button color="primary" [disabled]="!changePasswordForm.form.valid" type="submit">Change</button></div>
+  </mat-card-actions>
+</mat-card>
+</form>
+
+<mat-card *ngFor="let skillTable of skillTables">
+  <mat-card-title>{{ skillTable.title }} Skills</mat-card-title>
+  <mat-card-content>
+    <mat-table [dataSource]="skillTable.data">
+      <ng-container matColumnDef="name">
+        <mat-header-cell *matHeaderCellDef>Name</mat-header-cell>
+        <mat-cell *matCellDef="let skill">{{ skill.name }}</mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="points">
+        <mat-header-cell *matHeaderCellDef>Points</mat-header-cell>
+        <mat-cell *matCellDef="let skill">{{ skill.points }}</mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="pointType">
+        <mat-header-cell *matHeaderCellDef>Type</mat-header-cell>
+        <mat-cell *matCellDef="let skill">{{ skill.pointType }}</mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="action">
+        <mat-header-cell *matHeaderCellDef class="actions-column">Action</mat-header-cell>
+        <mat-cell *matCellDef="let skill" class="actions-column">
+          <button mat-icon-button (click)="onAddEdit(skill.accountId, skill)"><mat-icon color="primary">edit</mat-icon></button>
+          <button mat-icon-button (click)="onDeleteSkill(skill)"><mat-icon color="warn">delete_forever</mat-icon></button>
+        </mat-cell>
+      </ng-container>
+
+      <mat-header-row *matHeaderRowDef="skillTableColumns"></mat-header-row>
+
+      <mat-row *matRowDef="let row; columns: skillTableColumns;"></mat-row>
+    </mat-table>
+    <div class="empty-table" *ngIf="skillTable.data.length === 0">No Skills Found</div>
+  </mat-card-content>
+  <mat-card-actions *ngIf="skillTable.accountUid">
+    <button *appShowForRoles="['Admin']" mat-raised-button color="accent" (click)="onAddEdit(skillTable.accountUid)">Add New Skill</button>
+  </mat-card-actions>
+</mat-card>
+
+<ng-template #addEditModal>
+  <h1 mat-dialog-title>Add/Edit Skill</h1>
+  <div mat-dialog-content>
+    <mat-form-field>
+      <input matInput [(ngModel)]="newName" placeholder="Skill Name" required />
+    </mat-form-field>
+    <mat-form-field>
+      <input matInput [(ngModel)]="newPointType" placeholder="Point Type" required />
+    </mat-form-field>
+    <mat-form-field>
+      <input matInput [(ngModel)]="newPoints" placeholder="Points" type="number" required />
+    </mat-form-field>
+  </div>
+  <div mat-dialog-actions>
+    <button mat-raised-button [mat-dialog-close]="false">Cancel</button>
+    <button mat-raised-button [mat-dialog-close]="true" color="primary" cdkFocusInitial>Save</button>
+  </div>
+</ng-template>

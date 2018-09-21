@@ -54,6 +54,7 @@ router.get(
 )
 router.get(
   `/connect/${Websites.GITHUB.toLowerCase()}/callback`,
+  auth(allRoles),
   passport.authenticate(Websites.GITHUB.toLowerCase(), passportOptions),
   async (req, res) => {
     // Instead of sending a message to the client,
@@ -72,6 +73,7 @@ router.get(
 )
 router.get(
   `/connect/${Websites.GITLAB.toLowerCase()}/callback`,
+  auth(allRoles),
   passport.authenticate(Websites.GITLAB.toLowerCase(), passportOptions),
   async (req, res) => {
     // Instead of sending a message to the client,

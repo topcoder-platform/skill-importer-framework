@@ -67,12 +67,12 @@ The code follows StandardJS.
 - Install AWS CLI: https://docs.aws.amazon.com/cli/latest/userguide/installing.html
 - Install EB CLI: https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/eb-cli3-install.html
 - Go to AWS Console: https://console.aws.amazon.com
-- Create a new IAM user (e.g. skill-importer-api-role) with a new group (e.g. skill-importer-api-group). Make sure you added ` AmazonDynamoDBFullAccess` and `AWSElasticBeanstalkFullAccess` to the group
+- Create a new IAM user (e.g. skill-importer-api-role) with a new group (e.g. skill-importer-api-group). Make sure you added `AmazonDynamoDBFullAccess` and `AWSElasticBeanstalkFullAccess` to the group
 - You can download the access key and secret by "Download .csv" button
 - Go the Permissions tab of the IAM user, "Add inline policy" with this
 - Configure new AWS profile by `aws configure --profile <IAM user>` (where <IAM user> is the IAM user created above)
 - Make sure that `~/.aws/credentials` is created and correct
-- `cd skill-importer-api`
+- `cd tc-skill-importer-framework`
 - Init EB `eb init -r <region> -p "Node.js"`, replace <region> with your region, e.g. us-east-1
 - Make sure you removed the `node_modules` directory before going to the next steps
 - Create EB environment `eb create` (NOTE: use `eb create -s` if your account is free tier)

@@ -12,3 +12,7 @@ node_modules/
 .idea
 
 *.DS_Store
+
+# Test shell file for setting env
+set_env.sh
+

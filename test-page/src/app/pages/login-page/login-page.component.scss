@@ -1,0 +1,21 @@
+.card {
+  margin: 100px auto;
+  width: 450px;
+
+  h2 {
+    margin-bottom: 0;
+  }
+}
+
+mat-form-field {
+  width: 100%;
+}
+
+form {
+  padding-top: 20px;
+}
+
+.button-wrapper {
+  display: flex;
+  justify-content: center;
+}

@@ -1,0 +1,45 @@
+<form (ngSubmit)="onSearch()">
+  <mat-card>
+    <mat-card-title>Search</mat-card-title>
+    <mat-card-content>
+      <mat-form-field>
+        <input matInput name="term" [(ngModel)]="term" placeholder="Search Term" />
+      </mat-form-field>
+
+      <mat-form-field class="field-select">
+        <mat-select [(value)]="field" placeholder="Search Field">
+          <mat-option value="name">Name</mat-option>
+          <mat-option value="username">Username</mat-option>
+          <mat-option value="skill">Skill</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </mat-card-content>
+    <mat-card-actions>
+      <button mat-button color="primary" type="submit">Search</button>
+      <button mat-button (click)="onReset()">Reset</button>
+    </mat-card-actions>
+  </mat-card>
+</form>
+
+<mat-card class="spinner-container">
+  <mat-card-title>Users</mat-card-title>
+  <mat-card-content>
+    <mat-table [dataSource]="dataSource" matSort (matSortChange)="onSort($event)">
+      <ng-container matColumnDef="username">
+        <mat-header-cell mat-sort-header *matHeaderCellDef>Username</mat-header-cell>
+        <mat-cell *matCellDef="let user"><a [routerLink]="['/profiles', user.uid]">{{ user.username }}</a></mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="name">
+        <mat-header-cell mat-sort-header *matHeaderCellDef>Full Name</mat-header-cell>
+        <mat-cell *matCellDef="let user">{{ user.name }}</mat-cell>
+      </ng-container>
+
+      <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+
+      <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+    </mat-table>
+    <mat-paginator #paginator [length]="dataSource.totalCount$ | async" pageSize="5" [pageSizeOptions]="[5, 10, 25]" showFirstLastButtons></mat-paginator>
+  </mat-card-content>
+  <div class="spinner-overlay" *ngIf="dataSource.loading$ | async"><mat-spinner></mat-spinner></div>
+</mat-card>

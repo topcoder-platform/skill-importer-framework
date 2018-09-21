@@ -1,0 +1,58 @@
+@import '~@angular/material/theming';
+@include mat-core();
+
+$custom-primary: mat-palette($mat-blue);
+$custom-accent: mat-palette($mat-yellow);
+$custom-warn: mat-palette($mat-red);
+
+$custom-theme: mat-light-theme($custom-primary, $custom-accent, $custom-warn);
+
+@include angular-material-theme($custom-theme);
+
+html, body { height: 100%; }
+body { margin: 0; font-family: 'Roboto', sans-serif; }
+
+a, a:visited {
+  color: mat-color($custom-primary);
+}
+
+mat-card-actions {
+  display: flex !important;
+  justify-content: center;
+  padding-bottom: 8px !important;
+
+  button {
+    margin: 0 8px;
+  }
+}
+
+.actions-column {
+  display: flex;
+  justify-content: center;
+  max-width: 60px;
+  button {
+    width: 30px;
+  }
+}
+
+.empty-table {
+  color: darkgray;
+  padding-top: 20px;
+  text-align: center;
+}
+
+.spinner-container {
+  position: relative;
+}
+
+.spinner-overlay {
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.1);
+  display: flex;
+  height: 100%;
+  justify-content: center;
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 100%;
+}

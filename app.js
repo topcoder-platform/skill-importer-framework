@@ -43,11 +43,6 @@ if (process.env.NODE_ENV === 'development') {
   app.use(morgan('common', { skip: (req, res) => res.statusCode < 400 }))
 }
 
-// Public HTML files for testing purpose
-if (process.env.NODE_ENV !== 'production') {
-  app.use('/html', express.static('test_files/html'))
-}
-
 // Configure passport
 configurePassport(passport)
 app.use(passport.initialize())

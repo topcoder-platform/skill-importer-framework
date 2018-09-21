@@ -1,0 +1,64 @@
+<mat-card>
+  <mat-card-title>Normalized Skills</mat-card-title>
+  <mat-card-content>
+    <mat-table [dataSource]="dataSource">
+      <ng-container matColumnDef="name">
+        <mat-header-cell *matHeaderCellDef >Name</mat-header-cell>
+        <mat-cell *matCellDef="let normalizedSkill">{{ normalizedSkill.name }}</mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="regex">
+        <mat-header-cell *matHeaderCellDef >Pattern</mat-header-cell>
+        <mat-cell *matCellDef="let normalizedSkill">{{ normalizedSkill.regex }}</mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="action">
+        <mat-header-cell *matHeaderCellDef class="actions-column">Action</mat-header-cell>
+        <mat-cell *matCellDef="let normalizedSkill" class="actions-column">
+          <button mat-icon-button (click)="onEdit(normalizedSkill)"><mat-icon color="primary">edit</mat-icon></button>
+          <button mat-icon-button (click)="onDelete(normalizedSkill)"><mat-icon color="warn">delete_forever</mat-icon></button>
+        </mat-cell>
+      </ng-container>
+
+      <mat-header-row *matHeaderRowDef="tableColumns"></mat-header-row>
+
+      <mat-row *matRowDef="let row; columns: tableColumns;"></mat-row>
+    </mat-table>
+    <div class="empty-table" *ngIf="dataSource && dataSource.data.length === 0">No Normalized Skills Found</div>
+  </mat-card-content>
+  <mat-card-actions>
+    <button mat-raised-button color="accent" (click)="onAdd()">Add New Normalized Skill</button>
+  </mat-card-actions>
+</mat-card>
+
+<ng-template #addModal>
+  <h1 mat-dialog-title>Add Normalized Skill</h1>
+  <div mat-dialog-content>
+    <mat-form-field>
+      <input matInput [(ngModel)]="newName" placeholder="Name" required />
+    </mat-form-field>
+    <mat-form-field>
+      <input matInput [(ngModel)]="newRegex" placeholder="Pattern (regex)" required />
+    </mat-form-field>
+  </div>
+  <div mat-dialog-actions>
+    <button mat-raised-button [mat-dialog-close]="false">Cancel</button>
+    <button mat-raised-button [mat-dialog-close]="true" color="primary" cdkFocusInitial>Add</button>
+  </div>
+</ng-template>
+
+<ng-template #editModal>
+  <h1 mat-dialog-title>Edit Normalized Skill</h1>
+  <div mat-dialog-content>
+    <mat-form-field>
+      <input matInput [(ngModel)]="newName" placeholder="Name" disabled required />
+    </mat-form-field>
+    <mat-form-field>
+      <input matInput [(ngModel)]="newRegex" placeholder="Pattern (regex)" required />
+    </mat-form-field>
+  </div>
+  <div mat-dialog-actions>
+    <button mat-raised-button [mat-dialog-close]="false">Cancel</button>
+    <button mat-raised-button [mat-dialog-close]="true" color="primary" cdkFocusInitial>Update</button>
+  </div>
+</ng-template>

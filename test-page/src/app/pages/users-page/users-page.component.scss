@@ -1,0 +1,12 @@
+mat-card {
+  margin-bottom: 30px;
+}
+
+mat-form-field {
+  width: calc(100% - 216px);
+
+  &.field-select {
+    margin-left: 16px;
+    width: 200px;
+  }
+}
