@@ -42,5 +42,10 @@
     "require-dir": "^1.0.0",
     "uuid": "^3.3.2",
     "winston": "^2.4.3"
+  },
+  "standard": {
+    "ignore": [
+      "/test-page/**"
+    ]
   }
 }

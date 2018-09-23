@@ -16,8 +16,8 @@
         <mat-header-cell *matHeaderCellDef>Importing Status</mat-header-cell>
         <mat-cell *matCellDef="let account">
           <mat-icon *ngIf="account.importingStatus === 'COMPLETED'" color="primary">done</mat-icon>
-          <mat-icon *ngIf="account.importingStatus === 'RUNNING'" color="accent">update</mat-icon>
-          <mat-icon *ngIf="account.importingStatus === 'ERROR'" color="warn">error</mat-icon>
+          <mat-spinner *ngIf="account.importingStatus === 'RUNNING'" color="accent" diameter="24">update</mat-spinner>
+          <mat-icon *ngIf="account.importingStatus === 'FAILED'" color="warn">error_outline</mat-icon>
           <span>{{ account.importingStatus }}</span>
         </mat-cell>
       </ng-container>

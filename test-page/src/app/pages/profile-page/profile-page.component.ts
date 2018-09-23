@@ -3,9 +3,9 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {Account} from '../../interfaces/account';
 import {ToolbarService} from '../../services/toolbar.service';
 import {AccountsService} from '../../services/accounts.service';
-import {catchError, flatMap, map} from 'rxjs/operators';
+import {catchError, delay, flatMap, map, retryWhen, tap} from 'rxjs/operators';
 import {SkillsService} from '../../services/skills.service';
-import {combineLatest, from, of} from 'rxjs';
+import {combineLatest, from, of, throwError} from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 import {AuthService} from '../../services/auth.service';
@@ -27,6 +27,7 @@ export class ProfilePageComponent implements OnInit {
 
   accountTableColumns: string[];
   skillTableColumns: string[];
+  watchingImports = new Set<string>();
 
   isAdmin = false;
   isOwnProfile = false;
@@ -76,6 +77,18 @@ export class ProfilePageComponent implements OnInit {
     this.accounts.getByUid(this.userUid).subscribe(accountsData => {
       this.accountsData = accountsData;
       from(accountsData).pipe(
+        tap(account => {
+          if (account.importingStatus === 'RUNNING' && !this.watchingImports.has(account.id)) {
+            this.watchingImports.add(account.id);
+            this.accounts.getImportStatus(account.id).pipe(
+              flatMap(status => status === 'RUNNING' ? throwError(status) : of(status)),
+              retryWhen(errors => errors.pipe(delay(30000))),
+            ).subscribe(() => {
+              this.watchingImports.delete(account.id);
+              this.loadData();
+            });
+          }
+        }),
         flatMap(account => this.skills.getByAccountUid(account.id).pipe(
           map(data => ({ title: account.website, accountUid: account.id, data })),
         )),

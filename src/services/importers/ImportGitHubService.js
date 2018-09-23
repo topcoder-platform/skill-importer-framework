@@ -254,6 +254,15 @@ async function getAllInvitedPrivateReposEvents () {
 }
 
 /**
+ * Retrieves the date that a user created their GitHub account.
+ * @returns {Moment}
+ */
+async function getDateUserJoinedGitHub (username) {
+  const { data: details } = await axios(`https://api.github.com/users/${username}`)
+  return moment(details.created_at)
+}
+
+/**
  * Before importing, accept any pending repo invitations, and build a list of all private repo events for importing
  * @returns {Array} Events from all invited private repos
  */
@@ -285,14 +294,14 @@ async function execute (account, normalizedSkillNames, invitedPrivateRepoEvents)
     logger.debug(`Unable to access private repos for ${account.username}`)
   }
 
-  // We count until the GitHub official launch (2008 April)
-  const gitHubLaunchingAt = moment('2008-04-01', dateFormat)
+  // Start from the date the user joined GitHub
+  const startDate = await getDateUserJoinedGitHub(account.username)
 
   // And count from the current month
   const startOfMonth = moment().startOf('month')
 
   // Loop until the GitHub launching date
-  while (startOfMonth >= gitHubLaunchingAt) {  // eslint-disable-line
+  while (startOfMonth >= startDate) {  // eslint-disable-line
     try {
       const endOfMonth = moment(startOfMonth).endOf('month')
 

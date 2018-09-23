@@ -15,7 +15,7 @@
       </mat-form-field>
     </mat-card-content>
     <mat-card-actions>
-      <button mat-button color="primary" type="submit">Search</button>
+      <button mat-button color="primary" [disabled]="!term || !field" type="submit">Search</button>
       <button mat-button (click)="onReset()">Reset</button>
     </mat-card-actions>
   </mat-card>

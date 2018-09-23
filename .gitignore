@@ -13,6 +13,5 @@ node_modules/
 
 *.DS_Store
 
-# Test shell file for setting env
+# local env set
 set_env.sh
-

@@ -37,14 +37,14 @@ The following variables can be configured:
 - Go to https://github.com/settings/profile
 - Click "Developer settings"
 - Click "New OAuth App" button
-- Input into all fields. NOTE: set `Homepage URL` to "http://localhost:3000", and `Authorization callback URL` to "http://localhost:3000/api/v1/connect/github/callback"
+- Input into all fields. NOTE: set `Homepage URL` to "http://localhost:4200", and `Authorization callback URL` to "http://localhost:4200/connect/github"
 - After submitting, you can go to the app details to get the OAuth client ID and secret.
 
 ### How to create GitLab app
 - Login to GitLab
 - Go to "Settings" / https://gitlab.com/profile
 - Click "Applications"
-- Fill out the fields.  NOTE: Set `Redirect URI` to "http://localhost:3000/api/v1/connect/gitlab/callback"
+- Fill out the fields.  NOTE: Set `Redirect URI` to "http://localhost:4200/connect/gitlab"
 - Scope can be set to 'read_user'
 - After submitting, you can go to 'Your applications' and click the newly added app to get the OAuth client ID and secret.
 
@@ -67,12 +67,12 @@ The code follows StandardJS.
 - Install AWS CLI: https://docs.aws.amazon.com/cli/latest/userguide/installing.html
 - Install EB CLI: https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/eb-cli3-install.html
 - Go to AWS Console: https://console.aws.amazon.com
-- Create a new IAM user (e.g. skill-importer-api-role) with a new group (e.g. skill-importer-api-group). Make sure you added `AmazonDynamoDBFullAccess` and `AWSElasticBeanstalkFullAccess` to the group
+- Create a new IAM user (e.g. skill-importer-api-role) with a new group (e.g. skill-importer-api-group). Make sure you added ` AmazonDynamoDBFullAccess` and `AWSElasticBeanstalkFullAccess` to the group
 - You can download the access key and secret by "Download .csv" button
 - Go the Permissions tab of the IAM user, "Add inline policy" with this
 - Configure new AWS profile by `aws configure --profile <IAM user>` (where <IAM user> is the IAM user created above)
 - Make sure that `~/.aws/credentials` is created and correct
-- `cd tc-skill-importer-framework`
+- `cd skill-importer-api`
 - Init EB `eb init -r <region> -p "Node.js"`, replace <region> with your region, e.g. us-east-1
 - Make sure you removed the `node_modules` directory before going to the next steps
 - Create EB environment `eb create` (NOTE: use `eb create -s` if your account is free tier)
@@ -81,7 +81,6 @@ The code follows StandardJS.
 - `eb open` to open that app in web browser
 
 ## Verification
-
 - Start the app
 - Generate test data `npm run seed`
 - You can generate additional admin users by updating `test_files/seed-admin.js` and run `npm run seed-admin`
@@ -89,15 +88,9 @@ The code follows StandardJS.
 - Change `URL` environment variable in Postman according to your deployment. If you deploy locally, it should be `http://localhost:3000/api/v1` by default
 - Send `/login` requests first so that the access tokens are cached for subsequent calls
 
-### For adding GitHub/GitLab account, you need to verify using a web browser:
-- Go to `http://localhost:3000/html` (this url is only available for `NODE_ENV !== 'production'`)
-- Enter username, password or you can use the pre-populated
-- Click `Login`
-- Check the login response to make sure the user is logged in successfully
-- Click `Connect GitHub` or `Connect GitLab`
-- You will be redirected to GitHub/GitLab, follow the screens to authenticate with GitHub/GitLab
-- GitHub/GitLab will redirect you back to `http://localhost:3000/api/v1/connect/github/callback`
-- Check the DB to verify that GitHub/GitLab account is created (you can use DynamoDB console, or any client tool)
+### Test Front-End
+- Functionality can be verified by running the Skill Importer Test app found in the test-page directory.
+- ***Please see `test-page/README.md` for directions.***
 
 ### Importing from Private Repositories
 - Create a new user for GitLab/GitHub which will be linked to the importer, and can be invited to private repositories

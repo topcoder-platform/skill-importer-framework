@@ -9,6 +9,7 @@ import {ConnectPageComponent} from './pages/connect-page/connect-page.component'
 import {EventsPageComponent} from './pages/events-page/events-page.component';
 import {NormalizedSkillsPageComponent} from './pages/normalized-skills-page/normalized-skills-page.component';
 import {AdminGuard} from './guards/admin.guard';
+import { environment } from '../environments/environment';
 
 const routes: Routes = [
   {
@@ -48,7 +49,7 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes, {useHash: true})],
+  imports: [RouterModule.forRoot(routes, {useHash: environment.useRouterHash})],
   exports: [RouterModule]
 })
 export class AppRoutingModule { }

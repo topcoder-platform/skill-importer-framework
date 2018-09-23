@@ -21,7 +21,7 @@ To get more help on the Angular CLI use `ng help` or go check out the [Angular C
 # Setting Up
 
 ## Running Locally
-1. Update the baseApiUrl in environments/environment.ts (local) or environments/environment.prod.ts (front-end deploy) to `http://localhost:8080/api/v1` for local, or leave as-is to use the AWS deployed backend
+1. Update the baseApiUrl in environments/environment.ts (local) or environments/environment.prod.ts (front-end deploy) to `http://localhost:3000/api/v1` for local, or leave as-is to use the AWS deployed backend
 2. Update the GitLab/GitHub redirect urls to `http://localhost:4200/connect/gitlab` and `http://localhost:4200/connect/github` for local deployment at both:
   - The platform's OAuth settings pages (https://gitlab.com/profile/applications) and (https://github.com/settings/developers)
   - The backend env variables (GITHUB_CALLBACK_URL, GITLAB_CALLBACK_URL)

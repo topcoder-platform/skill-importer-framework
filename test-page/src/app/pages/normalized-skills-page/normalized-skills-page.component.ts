@@ -1,9 +1,11 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
-import {MatDialog, MatTableDataSource} from '@angular/material';
+import {MatDialog, MatSnackBar, MatTableDataSource} from '@angular/material';
 import {ToolbarService} from '../../services/toolbar.service';
 import {DeleteConfirmDialogComponent} from '../../components/delete-confirm-dialog/delete-confirm-dialog.component';
 import {NormalizedSkillsService} from '../../services/normalized-skills.service';
 import {NormalizedSkill} from '../../interfaces/normalized-skill';
+import {catchError,  map, flatMap} from 'rxjs/operators';
+import {of} from 'rxjs';
 
 @Component({
   selector: 'app-normalized-skills-page',
@@ -22,6 +24,7 @@ export class NormalizedSkillsPageComponent implements OnInit {
   constructor(
     private dialog: MatDialog,
     private normalizedSkills: NormalizedSkillsService,
+    private notify: MatSnackBar,
     private toolbar: ToolbarService,
   ) {
     toolbar.setTitle('Normalized Skills');
@@ -46,9 +49,16 @@ export class NormalizedSkillsPageComponent implements OnInit {
       width: '300px',
     });
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.normalizedSkills.add(this.newName, this.newRegex).subscribe(() => this.loadData());
+    dialogRef.afterClosed().pipe(
+      flatMap(confirm => confirm ? this.normalizedSkills.add(this.newName, this.newRegex) : of(null)),
+      map(res => ({ res, error: '' })),
+      catchError(err => of({ res: null, error: err.error.message }))
+    ).subscribe(({ res, error }) => {
+      if (res) {
+        this.notify.open('Normalized Skill Successfully Added.', 'OK');
+        this.loadData();
+      } else if (error) {
+        this.notify.open(error, 'OK');
       }
     });
   }
@@ -63,6 +73,7 @@ export class NormalizedSkillsPageComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
+        this.notify.open('Normalized Skill Successfully Updated.', 'OK');
         this.normalizedSkills.update(this.newName, this.newRegex).subscribe(() => this.loadData());
       }
     });

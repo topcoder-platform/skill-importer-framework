@@ -3,8 +3,9 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
+  baseApiUrl: 'http://localhost:3000/api/v1',
   production: false,
-  baseApiUrl: 'http://tc-skill-importer-framework-dev.us-east-1.elasticbeanstalk.com/api/v1',
+  useRouterHash: false,
 };
 
 /*

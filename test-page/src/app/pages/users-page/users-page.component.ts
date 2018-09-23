@@ -63,13 +63,14 @@ export class UsersPageComponent implements OnInit {
   }
 
   onSearch() {
+    this.query.name = null;
+    this.query.username = null;
+    this.query.skill = null;
+
     if (this.term && this.field) {
       this.query[this.field] = this.term;
-    } else {
-      this.query.name = null;
-      this.query.username = null;
-      this.query.skill = null;
     }
+
     this.paginator.pageIndex = 0;
     this.dataSource.reset();
     this.query.offset = 0;
