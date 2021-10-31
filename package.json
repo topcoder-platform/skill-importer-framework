@@ -31,7 +31,7 @@
     "http-errors": "^1.6.2",
     "joi": "^13.4.0",
     "jsonwebtoken": "^8.3.0",
-    "lodash": "^4.17.4",
+    "lodash": "^4.17.21",
     "moment": "^2.22.2",
     "morgan": "^1.9.0",
     "passport": "^0.4.0",
