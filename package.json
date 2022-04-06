@@ -32,7 +32,7 @@
     "joi": "^13.4.0",
     "jsonwebtoken": "^8.3.0",
     "lodash": "^4.17.4",
-    "moment": "^2.22.2",
+    "moment": "^2.29.2",
     "morgan": "^1.9.0",
     "passport": "^0.4.0",
     "passport-github2": "^0.1.11",
